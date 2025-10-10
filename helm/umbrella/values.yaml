@@ -2,6 +2,13 @@ global:
   namespace: online-cafe
   domain: arch.homework
 
+discovery-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: victor2023victorovich/discovery-service
+    tag: latest
+
 user-service:
   enabled: true
   replicaCount: 2
@@ -10,8 +17,8 @@ user-service:
     tag: latest
   database:
     url: jdbc:postgresql://user-postgresql:5432/user_db
-  ingress:
-    enabled: false  # Отключаем отдельный ingress, используем gateway
+  monitoring:
+    enabled: true
 
 menu-service:
   enabled: true
@@ -21,6 +28,8 @@ menu-service:
     tag: latest
   database:
     url: jdbc:postgresql://menu-postgresql:5432/menu_db
+  monitoring:
+    enabled: true
 
 order-service:
   enabled: true
@@ -30,6 +39,8 @@ order-service:
     tag: latest
   database:
     url: jdbc:postgresql://order-postgresql:5432/order_db
+  monitoring:
+    enabled: true
 
 payment-service:
   enabled: true
@@ -39,6 +50,8 @@ payment-service:
     tag: latest
   database:
     url: jdbc:postgresql://payment-postgresql:5432/payment_db
+  monitoring:
+    enabled: true
 
 api-gateway:
   enabled: true
@@ -57,6 +70,10 @@ rabbitmq:
 
 postgresql:
   enabled: true
+  global:
+    postgresql:
+      auth:
+        postgresPassword: "postgres"
   auth:
     postgresPassword: "postgres"
     database: "user_db"

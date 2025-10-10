@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Базы данных
   user-postgresql:
     image: postgres:15
     environment:
@@ -9,6 +10,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
 
   menu-postgresql:
     image: postgres:15
@@ -18,7 +21,32 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
+    volumes:
+      - menu_postgres_data:/var/lib/postgresql/data
 
+  order-postgresql:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - order_postgres_data:/var/lib/postgresql/data
+
+  payment-postgresql:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+
+  # Message Broker
   rabbitmq:
     image: rabbitmq:3.12-management
     environment:
@@ -27,7 +55,10 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
+  # Микросервисы
   user-service:
     build: ./src/user-service
     environment:
@@ -35,11 +66,19 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
     ports:
       - "8000:8000"
     depends_on:
       - user-postgresql
       - rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   menu-service:
     build: ./src/menu-service
@@ -48,8 +87,82 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
     ports:
       - "8001:8001"
     depends_on:
       - menu-postgresql
       - rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  order-service:
+    build: ./src/order-service
+    environment:
+      DB_URL: jdbc:postgresql://order-postgresql:5432/order_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8002:8002"
+    depends_on:
+      - order-postgresql
+      - rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  payment-service:
+    build: ./src/payment-service
+    environment:
+      DB_URL: jdbc:postgresql://payment-postgresql:5432/payment_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8003:8003"
+    depends_on:
+      - payment-postgresql
+      - rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    build: ./src/api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
+      - menu-service
+      - order-service
+      - payment-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  user_postgres_data:
+  menu_postgres_data:
+  order_postgres_data:
+  payment_postgres_data:
+  rabbitmq_data:

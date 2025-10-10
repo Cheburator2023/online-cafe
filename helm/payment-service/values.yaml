@@ -1,0 +1,26 @@
+replicaCount: 2
+image:
+  repository: victor2023victorovich/payment-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8003
+
+ingress:
+  enabled: false
+
+database:
+  url: jdbc:postgresql://payment-postgresql:5432/payment_db
+  username: postgres
+  password: postgres
+
+rabbitmq:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+
+monitoring:
+  enabled: true

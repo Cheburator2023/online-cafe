@@ -1,29 +1,132 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.5.6"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("org.springframework.boot") version "3.2.0"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
-group = "ru.otus"
-version = "0.0.1-SNAPSHOT"
-description = "online-cafe"
+allprojects {
+    group = "ru.otus.cafe"
+    version = "0.0.1-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    repositories {
+        mavenCentral()
     }
 }
 
-repositories {
-    mavenCentral()
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "org.springframework.boot")
+    apply(plugin = "io.spring.dependency-management")
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
+
+    dependencies {
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-registry-prometheus")
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 }
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+project(":common-lib") {
+    dependencies {
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+        implementation("com.fasterxml.jackson.core:jackson-databind")
+        implementation("org.springframework:spring-tx")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
+
+    tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+        enabled = false
+    }
+
+    tasks.getByName<Jar>("jar") {
+        enabled = true
+    }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+project(":discovery-service") {
+    dependencies {
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:4.1.0")
+    }
+}
+
+project(":api-gateway") {
+    dependencies {
+        implementation("org.springframework.cloud:spring-cloud-starter-gateway:4.1.0")
+        implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j:3.1.0")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+        implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+        implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+        implementation(project(":common-lib"))
+    }
+}
+
+project(":user-service") {
+    dependencies {
+        implementation(project(":common-lib"))
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        implementation("org.springframework.boot:spring-boot-starter-amqp")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+        implementation("org.flywaydb:flyway-core")
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+        runtimeOnly("org.postgresql:postgresql")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
+}
+
+project(":menu-service") {
+    dependencies {
+        implementation(project(":common-lib"))
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        implementation("org.springframework.boot:spring-boot-starter-amqp")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+        implementation("org.flywaydb:flyway-core")
+        runtimeOnly("org.postgresql:postgresql")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
+}
+
+project(":order-service") {
+    dependencies {
+        implementation(project(":common-lib"))
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        implementation("org.springframework.boot:spring-boot-starter-amqp")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+        implementation("org.flywaydb:flyway-core")
+        runtimeOnly("org.postgresql:postgresql")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
+}
+
+project(":payment-service") {
+    dependencies {
+        implementation(project(":common-lib"))
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        implementation("org.springframework.boot:spring-boot-starter-amqp")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+        implementation("org.flywaydb:flyway-core")
+        runtimeOnly("org.postgresql:postgresql")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
 }

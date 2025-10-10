@@ -1,0 +1,7 @@
+auth:
+  username: guest
+  password: guest
+
+persistence:
+  enabled: true
+  size: 8Gi

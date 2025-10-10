@@ -1,0 +1,12 @@
+replicaCount: 1
+image:
+  repository: victor2023victorovich/discovery-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8761
+
+ingress:
+  enabled: false

@@ -1,0 +1,10 @@
+routes:
+  - path: /api/users/**
+    service: user-app
+    port: 8000
+  - path: /api/menu/**
+    service: menu-app
+    port: 8001
+  - path: /api/orders/**
+    service: order-app
+    port: 8002
