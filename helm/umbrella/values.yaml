@@ -1,0 +1,65 @@
+global:
+  namespace: online-cafe
+  domain: arch.homework
+
+user-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: victor2023victorovich/user-app
+    tag: latest
+  database:
+    url: jdbc:postgresql://user-postgresql:5432/user_db
+  ingress:
+    enabled: false  # Отключаем отдельный ingress, используем gateway
+
+menu-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: victor2023victorovich/menu-app
+    tag: latest
+  database:
+    url: jdbc:postgresql://menu-postgresql:5432/menu_db
+
+order-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: victor2023victorovich/order-app
+    tag: latest
+  database:
+    url: jdbc:postgresql://order-postgresql:5432/order_db
+
+payment-service:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: victor2023victorovich/payment-app
+    tag: latest
+  database:
+    url: jdbc:postgresql://payment-postgresql:5432/payment_db
+
+api-gateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: victor2023victorovich/api-gateway
+    tag: latest
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: guest
+    password: guest
+  persistence:
+    enabled: true
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres"
+    database: "user_db"
+  primary:
+    persistence:
+      enabled: true

@@ -1,0 +1,26 @@
+replicaCount: 2
+image:
+  repository: victor2023victorovich/menu-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8001
+
+ingress:
+  enabled: false  # Используем API Gateway
+
+database:
+  url: jdbc:postgresql://menu-postgresql:5432/menu_db
+  username: postgres
+  password: postgres
+
+rabbitmq:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+
+monitoring:
+  enabled: true

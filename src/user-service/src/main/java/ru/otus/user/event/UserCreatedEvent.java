@@ -1,0 +1,10 @@
+package ru.otus.user.event;
+
+import java.time.Instant;
+
+public record UserCreatedEvent(
+        Long userId,
+        String email,
+        String name,
+        Instant createdAt
+) {}
