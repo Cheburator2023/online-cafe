@@ -2,13 +2,6 @@ plugins {
     java
     id("org.springframework.boot") version "3.2.0" apply false
     id("io.spring.dependency-management") version "1.1.4"
-    id("org.owasp.dependencycheck") version "8.4.2" apply false
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
 }
 
 allprojects {
@@ -24,10 +17,6 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
-
-    if (project.name != "common-lib") {
-        apply(plugin = "org.owasp.dependencycheck")
-    }
 
     java {
         toolchain {
@@ -54,7 +43,7 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
         testLogging {
-            events("passed", "failed", "skipped")
+            events("passed", "skipped", "failed")
             setExceptionFormat("full")
         }
     }
@@ -70,8 +59,8 @@ project(":common-lib") {
         implementation("org.springframework.boot:spring-boot-starter-validation")
         implementation("com.fasterxml.jackson.core:jackson-databind")
         implementation("org.springframework:spring-tx")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
+        implementation("org.springframework.amqp:spring-rabbit")
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     }
 
     tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -80,6 +69,7 @@ project(":common-lib") {
 
     tasks.getByName<Jar>("jar") {
         enabled = true
+        archiveClassifier.set("")
     }
 }
 
@@ -96,6 +86,7 @@ project(":api-gateway") {
         implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
         implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
         implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+        implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
         implementation(project(":common-lib"))
     }
 }
