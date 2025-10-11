@@ -4,7 +4,7 @@ plugins {
 }
 
 springBoot {
-    mainClass.set("ru.otus.user.UserApplication")
+    mainClass.set("ru.otus.cafe.menu.MenuApplication")
 }
 
 dependencies {
@@ -15,7 +15,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
     implementation("org.flywaydb:flyway-core")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
     runtimeOnly("org.postgresql:postgresql")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

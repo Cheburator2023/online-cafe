@@ -8,6 +8,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.springframework:spring-tx")
     implementation("org.springframework.amqp:spring-rabbit")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 }
@@ -18,4 +19,5 @@ tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar
 
 tasks.getByName<Jar>("jar") {
     enabled = true
+    archiveClassifier.set("")
 }

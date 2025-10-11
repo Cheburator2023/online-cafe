@@ -23,21 +23,18 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Clean build
-        run: ./gradlew clean
+      - name: Verify project structure
+        run: |
+          find . -name "*.java" -path "*/src/main/*" | grep Application.java
+          ./gradlew projects --console=verbose
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build --stacktrace --info
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --stacktrace
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            **/build/test-results/
-            **/build/reports/
-          retention-days: 7
+      - name: Check bootJar tasks
+        run: |
+          ./gradlew :api-gateway:bootJar --console=verbose --stacktrace || true
+          ./gradlew :user-service:bootJar --console=verbose --stacktrace || true
