@@ -1,7 +1,14 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.2.0"
+    id("org.springframework.boot") version "3.2.0" apply false
     id("io.spring.dependency-management") version "1.1.4"
+    id("org.owasp.dependencycheck") version "8.4.2" apply false
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
+    }
 }
 
 allprojects {
@@ -18,20 +25,43 @@ subprojects {
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
 
+    if (project.name != "common-lib") {
+        apply(plugin = "org.owasp.dependencycheck")
+    }
+
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
+    configurations {
+        compileOnly {
+            extendsFrom(configurations.annotationProcessor.get())
+        }
+    }
+
     dependencies {
         implementation("org.springframework.boot:spring-boot-starter-actuator")
         implementation("io.micrometer:micrometer-registry-prometheus")
+        implementation("io.micrometer:micrometer-observation")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     tasks.withType<Test> {
         useJUnitPlatform()
+        testLogging {
+            events("passed", "failed", "skipped")
+            setExceptionFormat("full")
+        }
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+        options.compilerArgs.addAll(listOf("-parameters"))
     }
 }
 
