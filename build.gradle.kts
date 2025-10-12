@@ -212,12 +212,13 @@ project(":payment-service") {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
 
+        // Для корректного определения main class
+        implementation("org.springframework.boot:spring-boot-starter")
         // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.springframework.boot:spring-boot-testcontainers")
         testImplementation("org.testcontainers:junit-jupiter")
         testImplementation("org.testcontainers:postgresql")
         testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }

@@ -1,10 +1,25 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("java")
 }
+
+group = "ru.otus.cafe"
+version = "0.0.1-SNAPSHOT"
 
 springBoot {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
+}
+
+// Явно указываем mainClass для bootJar
+tasks.named("bootJar") {
+    manifest {
+        attributes("Start-Class" to "ru.otus.cafe.gateway.ApiGatewayApplication")
+    }
+}
+
+tasks.named("jar") {
+    enabled = true
 }
 
 dependencies {
@@ -16,11 +31,12 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
     implementation(project(":common-lib"))
 
+    // Для корректного определения main class
+    implementation("org.springframework.boot:spring-boot-starter")
     // Тестовые зависимости
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:rabbitmq")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
