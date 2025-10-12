@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,32 +23,50 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Clean project
+      - name: Verify project structure
         run: |
-          ./scripts/cleanup-project.sh
-          ./gradlew clean
+          echo "=== Project Structure ==="
+          find . -name "*Tests.java" -type f
+          echo "=== Gradle Projects ==="
+          ./gradlew projects --console=plain
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test --stacktrace
 
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      - name: Run tests with detailed output
+        run: |
+          echo "=== Running Tests ==="
+          ./gradlew test --stacktrace --info --no-daemon
+          echo "=== Test Results ==="
+          find . -name "TEST-*.xml" -type f | head -10
+          echo "=== Test Reports ==="
+          find . -path "*/build/test-results/*" -name "*.xml" | head -10
+
+      - name: List test report files
+        run: |
+          echo "=== All test report files ==="
+          find . -name "*.xml" -path "*/test-results/*" | while read file; do
+            echo "Found: $file"
+            ls -la "$file"
+          done
+          echo "=== Build directories ==="
+          find . -type d -name "test-results" | head -10
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
+          name: test-results-detailed
           path: |
             **/build/test-results/
             **/build/reports/
           retention-days: 7
 
-      - name: Test Report
+      - name: Publish Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: JUnit Tests
           path: '**/build/test-results/test/*.xml'
           reporter: 'java-junit'
-          fail-on-error: 'false'
+          fail-on-error: false

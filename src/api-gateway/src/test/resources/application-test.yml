@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    gateway:
+      routes: []
+    discovery:
+      client:
+        simple:
+          instances: {}
+
+logging:
+  level:
+    org.springframework: WARN

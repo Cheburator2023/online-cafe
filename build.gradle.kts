@@ -51,7 +51,23 @@ subprojects {
         testLogging {
             events("passed", "skipped", "failed")
             setExceptionFormat("full")
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
         }
+
+        // Гарантируем генерацию XML отчетов
+        reports {
+            junitXml.required.set(true)
+            html.required.set(true)
+        }
+
+        // Всегда запускать тесты
+        outputs.upToDateWhen { false }
+
+        // Настройки для CI
+        systemProperty("java.awt.headless", "true")
+        systemProperty("spring.profiles.active", "test")
     }
 
     tasks.withType<JavaCompile> {
