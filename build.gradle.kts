@@ -36,7 +36,13 @@ subprojects {
         implementation("io.micrometer:micrometer-observation")
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+
+        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
@@ -61,6 +67,14 @@ project(":common-lib") {
         implementation("org.springframework:spring-tx")
         implementation("org.springframework.amqp:spring-rabbit")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -88,6 +102,14 @@ project(":api-gateway") {
         implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
         implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
         implementation(project(":common-lib"))
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -104,6 +126,14 @@ project(":user-service") {
         runtimeOnly("org.postgresql:postgresql")
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -119,6 +149,14 @@ project(":menu-service") {
         runtimeOnly("org.postgresql:postgresql")
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -134,6 +172,14 @@ project(":order-service") {
         runtimeOnly("org.postgresql:postgresql")
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -149,5 +195,13 @@ project(":payment-service") {
         runtimeOnly("org.postgresql:postgresql")
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+
+        // Тестовые зависимости
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-testcontainers")
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:postgresql")
+        testImplementation("org.testcontainers:rabbitmq")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }

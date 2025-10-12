@@ -1,10 +1,10 @@
-package ru.otus.onlinecafe;
+package ru.otus.cafe.order;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OnlineCafeApplicationTests {
+class OrderApplicationTests {
 
     @Test
     void contextLoads() {

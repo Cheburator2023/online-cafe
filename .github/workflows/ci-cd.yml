@@ -23,18 +23,32 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Verify project structure
+      - name: Clean project
         run: |
-          find . -name "*.java" -path "*/src/main/*" | grep Application.java
-          ./gradlew projects --console=verbose
+          ./scripts/cleanup-project.sh
+          ./gradlew clean
 
       - name: Build with Gradle
-        run: ./gradlew build --stacktrace --info
+        run: ./gradlew build -x test
 
       - name: Run tests
-        run: ./gradlew test --stacktrace
+        run: ./gradlew test --no-daemon
 
-      - name: Check bootJar tasks
-        run: |
-          ./gradlew :api-gateway:bootJar --console=verbose --stacktrace || true
-          ./gradlew :user-service:bootJar --console=verbose --stacktrace || true
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/build/test-results/
+            **/build/reports/
+          retention-days: 7
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: JUnit Tests
+          path: '**/build/test-results/test/*.xml'
+          reporter: 'java-junit'
+          fail-on-error: 'false'
