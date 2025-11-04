@@ -7,11 +7,13 @@ import ru.otus.cafe.order.dto.CreateOrderRequest;
 import ru.otus.cafe.order.dto.OrderResponse;
 import ru.otus.cafe.order.exception.OrderNotFoundException;
 import ru.otus.cafe.order.mapper.OrderMapper;
+import ru.otus.cafe.order.messaging.OrderEventPublisher;
 import ru.otus.cafe.order.model.Order;
 import ru.otus.cafe.order.model.OrderItem;
 import ru.otus.cafe.order.model.OrderStatus;
 import ru.otus.cafe.order.repository.OrderRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,6 +21,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final OrderEventPublisher orderEventPublisher;
 
     @Override
     @Transactional
@@ -38,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
         });
 
         Order savedOrder = orderRepository.save(order);
+
+        orderEventPublisher.publishOrderCreatedEvent(savedOrder);
+
         return orderMapper.toResponse(savedOrder);
     }
 
@@ -46,6 +52,8 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse getOrderById(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + id));
+        orderEventPublisher.publishOrderCreatedEvent(order);
+
         return orderMapper.toResponse(order);
     }
 
@@ -57,6 +65,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.valueOf(status.toUpperCase()));
         Order updatedOrder = orderRepository.save(order);
+        orderEventPublisher.publishOrderCreatedEvent(updatedOrder);
         return orderMapper.toResponse(updatedOrder);
     }
 

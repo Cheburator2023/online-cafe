@@ -1,4 +1,4 @@
-package ru.otus.cafe.user.health;
+package ru.otus.user.health;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;

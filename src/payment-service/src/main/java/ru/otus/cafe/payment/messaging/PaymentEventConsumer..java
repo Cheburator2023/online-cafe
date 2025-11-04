@@ -17,7 +17,6 @@ public class PaymentEventConsumer {
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
         log.info("Received order created event for order ID: {}", event.orderId());
 
-        // Автоматически создаем платеж для заказа
         ru.otus.cafe.payment.dto.PaymentRequest paymentRequest = new ru.otus.cafe.payment.dto.PaymentRequest(
                 event.orderId(),
                 event.userId(),

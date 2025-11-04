@@ -2,7 +2,7 @@ FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 
-COPY build/libs/user-service-0.0.1-SNAPSHOT.jar app.jar
+COPY src/user-service/build/libs/user-service-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8000
 

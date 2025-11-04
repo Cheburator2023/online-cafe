@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  # Service Discovery
+  discovery-service:
+    build: ./src/discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Базы данных
   user-postgresql:
     image: postgres:15
@@ -12,6 +25,11 @@ services:
       - "5432:5432"
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   menu-postgresql:
     image: postgres:15
@@ -23,6 +41,11 @@ services:
       - "5433:5432"
     volumes:
       - menu_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   order-postgresql:
     image: postgres:15
@@ -34,6 +57,11 @@ services:
       - "5434:5432"
     volumes:
       - order_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   payment-postgresql:
     image: postgres:15
@@ -45,6 +73,11 @@ services:
       - "5435:5432"
     volumes:
       - payment_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Message Broker
   rabbitmq:
@@ -57,10 +90,17 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Микросервисы
   user-service:
-    build: ./src/user-service
+    build:
+      context: .
+      dockerfile: src/user-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://user-postgresql:5432/user_db
       DB_USERNAME: postgres
@@ -69,11 +109,16 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      EUREKA_URL: http://discovery-service:8761/eureka
     ports:
       - "8000:8000"
     depends_on:
-      - user-postgresql
-      - rabbitmq
+      user-postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
       interval: 30s
@@ -81,7 +126,9 @@ services:
       retries: 3
 
   menu-service:
-    build: ./src/menu-service
+    build:
+      context: .
+      dockerfile: src/menu-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://menu-postgresql:5432/menu_db
       DB_USERNAME: postgres
@@ -90,11 +137,16 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      EUREKA_URL: http://discovery-service:8761/eureka
     ports:
       - "8001:8001"
     depends_on:
-      - menu-postgresql
-      - rabbitmq
+      menu-postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/actuator/health"]
       interval: 30s
@@ -102,7 +154,9 @@ services:
       retries: 3
 
   order-service:
-    build: ./src/order-service
+    build:
+      context: .
+      dockerfile: src/order-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://order-postgresql:5432/order_db
       DB_USERNAME: postgres
@@ -111,11 +165,16 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      EUREKA_URL: http://discovery-service:8761/eureka
     ports:
       - "8002:8002"
     depends_on:
-      - order-postgresql
-      - rabbitmq
+      order-postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/actuator/health"]
       interval: 30s
@@ -123,7 +182,9 @@ services:
       retries: 3
 
   payment-service:
-    build: ./src/payment-service
+    build:
+      context: .
+      dockerfile: src/payment-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://payment-postgresql:5432/payment_db
       DB_USERNAME: postgres
@@ -132,11 +193,16 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      EUREKA_URL: http://discovery-service:8761/eureka
     ports:
       - "8003:8003"
     depends_on:
-      - payment-postgresql
-      - rabbitmq
+      payment-postgresql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/actuator/health"]
       interval: 30s
@@ -144,9 +210,12 @@ services:
       retries: 3
 
   api-gateway:
-    build: ./src/api-gateway
+    build:
+      context: .
+      dockerfile: src/api-gateway/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://discovery-service:8761/eureka
     ports:
       - "8080:8080"
     depends_on:
@@ -154,6 +223,7 @@ services:
       - menu-service
       - order-service
       - payment-service
+      - discovery-service
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s

@@ -37,7 +37,6 @@ subprojects {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.springframework.boot:spring-boot-testcontainers")
         testImplementation("org.testcontainers:junit-jupiter")
@@ -48,31 +47,6 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
-        testLogging {
-            events("passed", "skipped", "failed")
-            setExceptionFormat("full")
-            showExceptions = true
-            showCauses = true
-            showStackTraces = true
-        }
-
-        // Гарантируем генерацию XML отчетов
-        reports {
-            junitXml.required.set(true)
-            html.required.set(true)
-        }
-
-        // Всегда запускать тесты
-        outputs.upToDateWhen { false }
-
-        // Настройки для CI
-        systemProperty("java.awt.headless", "true")
-        systemProperty("spring.profiles.active", "test")
-    }
-
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
-        options.compilerArgs.addAll(listOf("-parameters"))
     }
 }
 
@@ -83,14 +57,9 @@ project(":common-lib") {
         implementation("org.springframework:spring-tx")
         implementation("org.springframework.amqp:spring-rabbit")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+        implementation("org.springframework.boot:spring-boot-starter-json")
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -99,7 +68,6 @@ project(":common-lib") {
 
     tasks.getByName<Jar>("jar") {
         enabled = true
-        archiveClassifier.set("")
     }
 }
 
@@ -119,13 +87,7 @@ project(":api-gateway") {
         implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
         implementation(project(":common-lib"))
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -140,16 +102,8 @@ project(":user-service") {
         implementation("org.flywaydb:flyway-core")
         implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
         runtimeOnly("org.postgresql:postgresql")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -163,16 +117,8 @@ project(":menu-service") {
         implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
         implementation("org.flywaydb:flyway-core")
         runtimeOnly("org.postgresql:postgresql")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -186,16 +132,8 @@ project(":order-service") {
         implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
         implementation("org.flywaydb:flyway-core")
         runtimeOnly("org.postgresql:postgresql")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
 
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 }
 
@@ -209,16 +147,7 @@ project(":payment-service") {
         implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
         implementation("org.flywaydb:flyway-core")
         runtimeOnly("org.postgresql:postgresql")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
 
-        // Для корректного определения main class
-        implementation("org.springframework.boot:spring-boot-starter")
-        // Тестовые зависимости
         testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation("org.springframework.boot:spring-boot-testcontainers")
-        testImplementation("org.testcontainers:junit-jupiter")
-        testImplementation("org.testcontainers:postgresql")
-        testImplementation("org.testcontainers:rabbitmq")
     }
 }

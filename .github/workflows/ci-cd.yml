@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Важно для сохранения прав доступа
           persist-credentials: false
 
       - name: Setup Gradle Wrapper
@@ -33,7 +32,6 @@ jobs:
           echo "=== Gradle Version ==="
           ./gradlew --version || echo "Gradle failed, trying alternative..."
           
-          # Резервный вариант
           if ! ./gradlew --version; then
             echo "Gradle wrapper broken, regenerating..."
             rm -f gradlew
