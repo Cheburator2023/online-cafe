@@ -7,12 +7,11 @@ plugins {
 group = "ru.otus.cafe"
 version = "0.0.1-SNAPSHOT"
 
-// Убираем springBoot блок и настраиваем главный класс в bootJar
-tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
 }
 
-tasks.getByName<Jar>("jar") {
+tasks.withType<Jar> {
     enabled = true
 }
 
@@ -25,9 +24,6 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
     implementation(project(":common-lib"))
 
-    // Для корректного определения main class
-    implementation("org.springframework.boot:spring-boot-starter")
-    // Тестовые зависимости
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
