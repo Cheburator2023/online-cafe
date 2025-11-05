@@ -11,6 +11,10 @@ spring:
     username: guest
     password: guest
 
+eureka:
+  client:
+    enabled: false
+
 logging:
   level:
     ru.otus.cafe.payment: DEBUG
