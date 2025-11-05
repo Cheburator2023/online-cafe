@@ -42,7 +42,10 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
     distribution:
       sla:
         http.server.requests: 10ms, 50ms, 100ms, 200ms, 300ms, 400ms, 500ms, 600ms, 800ms

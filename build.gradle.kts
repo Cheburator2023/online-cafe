@@ -32,6 +32,7 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.2.0")
         }
     }
 
@@ -80,6 +81,8 @@ project(":common-lib") {
         implementation("org.springframework.amqp:spring-rabbit")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
         implementation("org.springframework.boot:spring-boot-starter")
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-core")
 
         testImplementation("org.springframework.boot:spring-boot-starter-test")
     }
