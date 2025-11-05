@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Service Discovery
   discovery-service:
-    build: ./src/discovery-service
+    build: discovery-service
     ports:
       - "8761:8761"
     environment:
@@ -100,7 +100,7 @@ services:
   user-service:
     build:
       context: .
-      dockerfile: src/user-service/Dockerfile
+      dockerfile: user-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://user-postgresql:5432/user_db
       DB_USERNAME: postgres
@@ -128,7 +128,7 @@ services:
   menu-service:
     build:
       context: .
-      dockerfile: src/menu-service/Dockerfile
+      dockerfile: menu-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://menu-postgresql:5432/menu_db
       DB_USERNAME: postgres
@@ -156,7 +156,7 @@ services:
   order-service:
     build:
       context: .
-      dockerfile: src/order-service/Dockerfile
+      dockerfile: order-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://order-postgresql:5432/order_db
       DB_USERNAME: postgres
@@ -184,7 +184,7 @@ services:
   payment-service:
     build:
       context: .
-      dockerfile: src/payment-service/Dockerfile
+      dockerfile: payment-service/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://payment-postgresql:5432/payment_db
       DB_USERNAME: postgres
@@ -212,7 +212,7 @@ services:
   api-gateway:
     build:
       context: .
-      dockerfile: src/api-gateway/Dockerfile
+      dockerfile: api-gateway/Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_URL: http://discovery-service:8761/eureka
