@@ -7,12 +7,19 @@ plugins {
 group = "ru.otus.cafe"
 version = "0.0.1-SNAPSHOT"
 
-tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+springBoot {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
 }
 
-tasks.withType<Jar> {
+// Явно указываем mainClass для bootJar
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
+    archiveFileName.set("api-gateway-${version}.jar")
+}
+
+tasks.named<Jar>("jar") {
     enabled = true
+    archiveClassifier.set("")
 }
 
 dependencies {
@@ -23,6 +30,10 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
     implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
     implementation(project(":common-lib"))
+
+    // Для корректного определения main class
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
