@@ -11,7 +11,6 @@ springBoot {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
 }
 
-// Явно указываем mainClass для bootJar
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
     archiveFileName.set("api-gateway-${version}.jar")
@@ -34,6 +33,13 @@ dependencies {
     // Для корректного определения main class
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Добавляем зависимости для OpenAPI/Swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
+    implementation("org.springdoc:springdoc-openapi-starter-common:2.3.0")
+    implementation("io.swagger.core.v3:swagger-core:2.2.15")
+    implementation("io.swagger.core.v3:swagger-models:2.2.15")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.15")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")

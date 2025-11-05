@@ -89,6 +89,20 @@ resilience4j:
         register-health-indicator: true
         sliding-window-size: 10
 
+# Конфигурация SpringDoc для API Gateway
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs
+        name: User Service
+      - url: /v3/api-docs/user-service
+        name: User Service (direct)
+
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
