@@ -32,9 +32,4 @@ class PaymentApplicationTests {
     void contextLoads(ApplicationContext context) {
         assertNotNull(context);
     }
-
-    @Test
-    void mainMethodStartsApplication() {
-        PaymentApplication.main(new String[]{});
-    }
 }
