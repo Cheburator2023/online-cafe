@@ -43,4 +43,5 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:rabbitmq")
+    testImplementation("com.h2database:h2")
 }
