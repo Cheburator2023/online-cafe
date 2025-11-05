@@ -11,6 +11,7 @@ import ru.otus.cafe.payment.model.Payment;
 import ru.otus.cafe.payment.model.PaymentStatus;
 import ru.otus.cafe.payment.repository.PaymentRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service

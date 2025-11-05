@@ -40,7 +40,3 @@ public class Payment {
         this.amount = amount;
     }
 }
-
-enum PaymentStatus {
-    PENDING, COMPLETED, FAILED, REFUNDED
-}
