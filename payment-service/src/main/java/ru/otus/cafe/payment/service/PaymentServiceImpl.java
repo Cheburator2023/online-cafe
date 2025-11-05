@@ -23,7 +23,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse processPayment(PaymentRequest request) {
-        Payment payment = new Payment(request.orderId(), request.userId(), request.amount());
+        Payment payment = new Payment(
+                request.orderId(),
+                request.userId(),
+                request.amount(),
+                request.paymentMethod()
+        );
 
         // Имитация обработки платежа
         if (request.amount().compareTo(BigDecimal.valueOf(1000)) > 0) {

@@ -13,7 +13,7 @@ public class PaymentMapper {
                 payment.getUserId(),
                 payment.getAmount(),
                 payment.getStatus().name(),
-                "CREDIT_CARD", // Заглушка
+                payment.getPaymentMethod(),
                 payment.getCreatedAt()
         );
     }

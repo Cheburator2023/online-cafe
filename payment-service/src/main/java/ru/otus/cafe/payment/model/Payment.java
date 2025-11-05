@@ -31,12 +31,16 @@ public class Payment {
     @Setter
     private PaymentStatus status = PaymentStatus.PENDING;
 
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
-    public Payment(Long orderId, Long userId, BigDecimal amount) {
+    public Payment(Long orderId, Long userId, BigDecimal amount, String paymentMethod) {
         this.orderId = orderId;
         this.userId = userId;
         this.amount = amount;
+        this.paymentMethod = paymentMethod;
     }
 }

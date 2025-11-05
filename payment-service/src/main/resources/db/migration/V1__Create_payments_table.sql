@@ -4,5 +4,6 @@ CREATE TABLE payments (
                           user_id BIGINT NOT NULL,
                           amount DECIMAL(10,2) NOT NULL,
                           status VARCHAR(50) NOT NULL,
+                          payment_method VARCHAR(100),
                           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
