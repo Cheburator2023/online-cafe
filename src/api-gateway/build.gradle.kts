@@ -7,18 +7,12 @@ plugins {
 group = "ru.otus.cafe"
 version = "0.0.1-SNAPSHOT"
 
-springBoot {
+// Убираем springBoot блок и настраиваем главный класс в bootJar
+tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
 }
 
-// Явно указываем mainClass для bootJar
-tasks.named("bootJar") {
-    manifest {
-        attributes("Start-Class" to "ru.otus.cafe.gateway.ApiGatewayApplication")
-    }
-}
-
-tasks.named("jar") {
+tasks.getByName<Jar>("jar") {
     enabled = true
 }
 
