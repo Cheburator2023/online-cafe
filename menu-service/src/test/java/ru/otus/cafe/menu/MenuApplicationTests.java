@@ -7,6 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -23,6 +24,10 @@ class MenuApplicationTests {
             .withUsername("test")
             .withPassword("test");
 
+    @Container
+    static RabbitMQContainer rabbitMQ = new RabbitMQContainer("rabbitmq:3.12-management")
+            .withExposedPorts(5672);
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
@@ -30,6 +35,12 @@ class MenuApplicationTests {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+
+        // RabbitMQ properties
+        registry.add("spring.rabbitmq.host", rabbitMQ::getHost);
+        registry.add("spring.rabbitmq.port", rabbitMQ::getAmqpPort);
+        registry.add("spring.rabbitmq.username", rabbitMQ::getAdminUsername);
+        registry.add("spring.rabbitmq.password", rabbitMQ::getAdminPassword);
     }
 
     @Test
