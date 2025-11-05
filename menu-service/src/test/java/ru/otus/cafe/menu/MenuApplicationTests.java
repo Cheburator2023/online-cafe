@@ -47,4 +47,9 @@ class MenuApplicationTests {
     void contextLoads(ApplicationContext context) {
         assertNotNull(context);
     }
+
+    @Test
+    void mainMethodStartsApplication() {
+        MenuApplication.main(new String[]{});
+    }
 }
