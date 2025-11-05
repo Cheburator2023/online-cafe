@@ -11,8 +11,3 @@ public record CreateOrderRequest(
         @NotEmpty List<@Valid OrderItemRequest> items,
         String specialInstructions
 ) {}
-
-record OrderItemRequest(
-        @NotNull Long menuItemId,
-        @NotNull Integer quantity
-) {}

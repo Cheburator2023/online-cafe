@@ -11,10 +11,3 @@ public record OrderCreatedEvent(
         List<OrderItemEvent> items,
         Instant createdAt
 ) {}
-
-record OrderItemEvent(
-        Long menuItemId,
-        String menuItemName,
-        Integer quantity,
-        BigDecimal unitPrice
-) {}

@@ -56,7 +56,3 @@ public class Order {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
-
-enum OrderStatus {
-    PENDING, CONFIRMED, PREPARING, READY, COMPLETED, CANCELLED
-}

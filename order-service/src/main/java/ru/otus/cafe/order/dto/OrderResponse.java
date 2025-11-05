@@ -13,11 +13,3 @@ public record OrderResponse(
         List<OrderItemResponse> items,
         Instant createdAt
 ) {}
-
-record OrderItemResponse(
-        Long menuItemId,
-        String menuItemName,
-        Integer quantity,
-        BigDecimal unitPrice,
-        BigDecimal subtotal
-) {}
