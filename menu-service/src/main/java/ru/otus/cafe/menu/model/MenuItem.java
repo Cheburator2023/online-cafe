@@ -48,7 +48,3 @@ public class MenuItem {
         this.category = category;
     }
 }
-
-enum Category {
-    COFFEE, TEA, DESSERT, SANDWICH, SALAD
-}

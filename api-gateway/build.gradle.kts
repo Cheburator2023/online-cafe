@@ -22,12 +22,13 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
-    implementation("org.springframework.cloud:spring-cloud-starter-gateway:4.1.0")
-    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j:3.1.0")
-    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.1.0")
+    implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
-    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.github.resilience4j:resilience4j-spring-boot3")
+    implementation("io.github.resilience4j:resilience4j-reactor")
     implementation(project(":common-lib"))
 
     // Для корректного определения main class
@@ -46,4 +47,10 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:rabbitmq")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
+    }
 }

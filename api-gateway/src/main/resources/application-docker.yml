@@ -1,6 +1,10 @@
 spring:
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       routes:
         - id: user-service
           uri: lb://user-service
@@ -47,10 +51,17 @@ spring:
                 name: paymentService
                 fallbackUri: forward:/fallback/payment-service
 
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+        - id: swagger-user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/v3/api-docs/user-service
+          filters:
+            - RewritePath=/v3/api-docs/user-service, /v3/api-docs
+
+        - id: swagger
+          uri: lb://user-service
+          predicates:
+            - Path=/v3/api-docs/**
 
   application:
     name: api-gateway
@@ -63,6 +74,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://discovery-service:8761/eureka
+  instance:
+    prefer-ip-address: true
 
 server:
   port: 8080
@@ -71,10 +84,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,gateway
   endpoint:
     health:
       show-details: always
+    gateway:
+      enabled: true
 
 resilience4j:
   circuitbreaker:
