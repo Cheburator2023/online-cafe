@@ -8,13 +8,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.List;
+
 @Configuration
 @Profile({"!test", "default", "docker"})
 public class GatewayRoutesConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(GatewayRoutesConfig.class);
 
-    private static final String[] SERVICES = {"user", "menu", "order", "payment"};
+    private static final List<String> SERVICES = List.of("user", "menu", "order", "payment");
 
     @Bean
     @Profile({"!docker", "default"})

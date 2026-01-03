@@ -33,7 +33,7 @@ public class FallbackController {
         logger.warn("Fallback triggered for service: {}", service);
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error(message));
+                .body(ApiResponse.error(HttpStatus.SERVICE_UNAVAILABLE.toString(), message));
     }
 
     // Старые методы для обратной совместимости

@@ -27,14 +27,20 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> error(ErrorResponse error) {
-        return new ApiResponse<>(false, null, null, LocalDateTime.now(), error);
+        return new ApiResponse<>(false, error.getMessage(), null, LocalDateTime.now(), error);
     }
 
     public static <T> ApiResponse<T> error(String code, String message) {
-        return error(new ErrorResponse(code, message));
+        ErrorResponse error = new ErrorResponse(code, message);
+        return new ApiResponse<>(false, message, null, LocalDateTime.now(), error);
     }
 
     public static <T> ApiResponse<T> error(String code, String message, String details) {
-        return error(new ErrorResponse(code, message, details));
+        ErrorResponse error = new ErrorResponse(code, message, details);
+        return new ApiResponse<>(false, message, null, LocalDateTime.now(), error);
+    }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return error("INTERNAL_ERROR", message);
     }
 }

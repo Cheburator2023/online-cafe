@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         logger.warn("Invalid argument for request to {}: {}",
                 exchange.getRequest().getPath(), ex.getMessage());
 
-        ApiResponse<Void> response = ApiResponse.error(ex.getMessage());
+        ApiResponse<Void> response = ApiResponse.error(HttpStatus.BAD_REQUEST.toString(), ex.getMessage());
 
         return Mono.just(ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
