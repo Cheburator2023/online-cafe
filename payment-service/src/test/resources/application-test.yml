@@ -2,28 +2,20 @@ spring:
   application:
     name: payment-service-test
 
-  datasource:
-    url: jdbc:h2:mem:paymentdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
 
   flyway:
     enabled: false
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
     template:
       retry:
         enabled: false
@@ -43,8 +35,12 @@ eureka:
 logging:
   level:
     ru.otus.cafe.payment: DEBUG
+    org.springframework.web: WARN
+    org.springframework.amqp: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %5level - %40.40logger{40} : %msg%n"
 
 test:
   containers:

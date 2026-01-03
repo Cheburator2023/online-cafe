@@ -32,28 +32,15 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Processing payment request for order {} and user {}",
                 request.orderId(), request.userId());
 
-        // Проверяем, не существует ли уже платеж для этого заказа
-        List<Payment> existingPayments = paymentRepository.findByOrderId(request.orderId());
-        if (!existingPayments.isEmpty()) {
-            log.warn("Payment already exists for order {}", request.orderId());
-            throw new IllegalArgumentException("Payment already exists for order: " + request.orderId());
-        }
+        validateNoExistingPaymentForOrder(request.orderId());
 
-        Payment payment = new Payment(
-                request.orderId(),
-                request.userId(),
-                request.amount(),
-                request.paymentMethod() != null ? request.paymentMethod() : "CREDIT_CARD"
-        );
-
-        // Обработка через платежный шлюз
+        Payment payment = createPaymentFromRequest(request);
         PaymentStatus gatewayStatus = paymentGatewayService.processPaymentThroughGateway(payment);
         payment.setStatus(gatewayStatus);
 
         Payment savedPayment = paymentRepository.save(payment);
         log.info("Payment {} saved with status {}", savedPayment.getId(), savedPayment.getStatus());
 
-        // Отправка события о обработке платежа
         sendPaymentProcessedEvent(savedPayment);
 
         return paymentMapper.toResponse(savedPayment);
@@ -63,8 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentById(Long id) {
         log.debug("Fetching payment by id: {}", id);
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id: " + id));
+        Payment payment = findPaymentByIdOrThrow(id);
         return paymentMapper.toResponse(payment);
     }
 
@@ -73,24 +59,15 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse updatePaymentStatus(Long id, String status) {
         log.info("Updating payment {} status to {}", id, status);
 
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id: " + id));
+        Payment payment = findPaymentByIdOrThrow(id);
+        PaymentStatus newStatus = parsePaymentStatus(status);
 
-        PaymentStatus newStatus;
-        try {
-            newStatus = PaymentStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid payment status: " + status);
-        }
-
-        // Проверка допустимости перехода статуса
         validateStatusTransition(payment.getStatus(), newStatus);
-
         payment.setStatus(newStatus);
+
         Payment updatedPayment = paymentRepository.save(payment);
 
-        // Если статус изменился на COMPLETED, отправляем событие
-        if (newStatus == PaymentStatus.COMPLETED && payment.getStatus() != newStatus) {
+        if (newStatus == PaymentStatus.COMPLETED) {
             sendPaymentProcessedEvent(updatedPayment);
         }
 
@@ -118,14 +95,56 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public List<PaymentResponse> getPaymentsByStatus(String status) {
         log.debug("Fetching payments with status: {}", status);
-        PaymentStatus paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
+        PaymentStatus paymentStatus = parsePaymentStatus(status);
         return paymentRepository.findByStatus(paymentStatus).stream()
                 .map(paymentMapper::toResponse)
                 .toList();
     }
 
+    private Payment findPaymentByIdOrThrow(Long id) {
+        return paymentRepository.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id: " + id));
+    }
+
+    private Payment createPaymentFromRequest(PaymentRequest request) {
+        return new Payment(
+                request.orderId(),
+                request.userId(),
+                request.amount(),
+                request.paymentMethod() != null ? request.paymentMethod() : "CREDIT_CARD"
+        );
+    }
+
+    private void validateNoExistingPaymentForOrder(Long orderId) {
+        List<Payment> existingPayments = paymentRepository.findByOrderId(orderId);
+        if (!existingPayments.isEmpty()) {
+            log.warn("Payment already exists for order {}", orderId);
+            throw new IllegalArgumentException("Payment already exists for order: " + orderId);
+        }
+    }
+
+    private PaymentStatus parsePaymentStatus(String status) {
+        try {
+            return PaymentStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid payment status: " + status);
+        }
+    }
+
     private void sendPaymentProcessedEvent(Payment payment) {
-        PaymentProcessedEvent event = new PaymentProcessedEvent(
+        PaymentProcessedEvent event = createPaymentProcessedEvent(payment);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.PAYMENT_EXCHANGE,
+                RabbitMQConfig.PAYMENT_PROCESSED_ROUTING_KEY,
+                event
+        );
+
+        log.info("Sent payment processed event for payment {}", payment.getId());
+    }
+
+    private PaymentProcessedEvent createPaymentProcessedEvent(Payment payment) {
+        return new PaymentProcessedEvent(
                 payment.getId(),
                 payment.getOrderId(),
                 payment.getUserId(),
@@ -134,14 +153,6 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getPaymentMethod(),
                 payment.getCreatedAt()
         );
-
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.PAYMENT_EXCHANGE,
-                "payment.processed",
-                event
-        );
-
-        log.info("Sent payment processed event for payment {}", payment.getId());
     }
 
     private void validateStatusTransition(PaymentStatus current, PaymentStatus newStatus) {
@@ -151,6 +162,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (current == PaymentStatus.REFUNDED && newStatus != PaymentStatus.REFUNDED) {
             throw new IllegalArgumentException("Cannot change status of REFUNDED payment");
+        }
+
+        if (current == PaymentStatus.FAILED && newStatus == PaymentStatus.REFUNDED) {
+            throw new IllegalArgumentException("Cannot refund FAILED payment");
         }
     }
 }

@@ -5,35 +5,21 @@ import org.springframework.stereotype.Service;
 import ru.otus.cafe.payment.model.Payment;
 import ru.otus.cafe.payment.model.PaymentStatus;
 
-import java.math.BigDecimal;
-
 @Service
 @Slf4j
-public class PaymentGatewayService {
+public class PaymentGatewayService implements PaymentGateway {
 
     /**
      * Имитация вызова внешнего платежного шлюза
      */
-    public PaymentStatus processPaymentThroughGateway(Payment payment) {
+    @Override
+    public PaymentStatus processPayment(Payment payment) {
         log.info("Processing payment {} through external gateway for order {}",
                 payment.getId(), payment.getOrderId());
 
-        // Имитация логики платежного шлюза
-        // В реальном приложении здесь был бы вызов API платежной системы
+        validatePaymentAmount(payment);
 
-        // Пример простой бизнес-логики:
-        if (payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            log.warn("Invalid amount for payment {}: {}", payment.getId(), payment.getAmount());
-            return PaymentStatus.FAILED;
-        }
-
-        if (payment.getAmount().compareTo(BigDecimal.valueOf(10000)) > 0) {
-            log.warn("Amount too high for payment {}: {}", payment.getId(), payment.getAmount());
-            return PaymentStatus.FAILED;
-        }
-
-        // Имитация случайных сбоев для реалистичности (в продакшене убрать)
-        if (Math.random() < 0.05) { // 5% вероятность сбоя
+        if (isRandomGatewayFailure()) {
             log.error("Random gateway failure for payment {}", payment.getId());
             return PaymentStatus.FAILED;
         }
@@ -44,9 +30,32 @@ public class PaymentGatewayService {
     /**
      * Имитация возврата платежа
      */
+    @Override
     public boolean processRefund(Payment payment) {
         log.info("Processing refund for payment {}", payment.getId());
-        // В реальном приложении здесь был бы вызов API для возврата
         return payment.getStatus() == PaymentStatus.COMPLETED;
+    }
+
+    /**
+     * Для обратной совместимости
+     */
+    public PaymentStatus processPaymentThroughGateway(Payment payment) {
+        return processPayment(payment);
+    }
+
+    private void validatePaymentAmount(Payment payment) {
+        if (payment.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            log.warn("Invalid amount for payment {}: {}", payment.getId(), payment.getAmount());
+            throw new IllegalArgumentException("Payment amount must be positive");
+        }
+
+        if (payment.getAmount().compareTo(java.math.BigDecimal.valueOf(10000)) > 0) {
+            log.warn("Amount too high for payment {}: {}", payment.getId(), payment.getAmount());
+            throw new IllegalArgumentException("Payment amount exceeds maximum limit");
+        }
+    }
+
+    private boolean isRandomGatewayFailure() {
+        return Math.random() < 0.05; // 5% вероятность сбоя (только для тестов)
     }
 }

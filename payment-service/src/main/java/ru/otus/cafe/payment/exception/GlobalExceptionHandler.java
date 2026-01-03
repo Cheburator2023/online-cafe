@@ -19,17 +19,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handlePaymentNotFoundException(PaymentNotFoundException ex) {
         log.warn("Payment not found: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse("PAYMENT_NOT_FOUND", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(error));
+                .body(ApiResponse.error("PAYMENT_NOT_FOUND", ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.warn("Invalid argument: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse("INVALID_ARGUMENT", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(error));
+                .body(ApiResponse.error("INVALID_ARGUMENT", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,9 +37,8 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
 
         log.warn("Validation failed: {}", errorMessage);
-        ErrorResponse error = new ErrorResponse("VALIDATION_FAILED", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(error));
+                .body(ApiResponse.error("VALIDATION_FAILED", errorMessage));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -51,16 +48,15 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
 
         log.warn("Constraint violation: {}", errorMessage);
-        ErrorResponse error = new ErrorResponse("CONSTRAINT_VIOLATION", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(error));
+                .body(ApiResponse.error("CONSTRAINT_VIOLATION", errorMessage));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unexpected error occurred", ex);
-        ErrorResponse error = new ErrorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(error));
+                .body(ApiResponse.error("INTERNAL_SERVER_ERROR",
+                        "An unexpected error occurred", ex.getMessage()));
     }
 }

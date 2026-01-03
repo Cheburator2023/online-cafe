@@ -14,6 +14,8 @@ public class RabbitMQConfig {
     public static final String ORDER_CREATED_QUEUE = "order.created.queue";
     public static final String PAYMENT_PROCESSED_QUEUE = "payment.processed.queue";
     public static final String PAYMENT_EXCHANGE = "payment.exchange";
+    public static final String ORDER_CREATED_ROUTING_KEY = "order.created";
+    public static final String PAYMENT_PROCESSED_ROUTING_KEY = "payment.processed";
 
     @Bean
     public Queue orderCreatedQueue() {
@@ -42,14 +44,14 @@ public class RabbitMQConfig {
     public Binding orderCreatedBinding() {
         return BindingBuilder.bind(orderCreatedQueue())
                 .to(paymentExchange())
-                .with("order.created");
+                .with(ORDER_CREATED_ROUTING_KEY);
     }
 
     @Bean
     public Binding paymentProcessedBinding() {
         return BindingBuilder.bind(paymentProcessedQueue())
                 .to(paymentExchange())
-                .with("payment.processed");
+                .with(PAYMENT_PROCESSED_ROUTING_KEY);
     }
 
     @Bean

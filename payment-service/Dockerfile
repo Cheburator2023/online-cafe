@@ -4,16 +4,22 @@ FROM eclipse-temurin:21-jdk-alpine AS build
 # Устанавливаем рабочую директорию
 WORKDIR /workspace
 
-# Копируем исходный код
-COPY payment-service/build.gradle.kts .
-COPY payment-service/src ./src
-COPY common-lib ../common-lib
+# Копируем файлы сборки
+COPY ../gradle ./gradle
+COPY ../gradlew .
+COPY ../gradle.properties .
+COPY ../settings.gradle.kts .
+COPY ../build.gradle.kts .
 
-# Создаем структуру проекта
-RUN mkdir -p ../common-lib/src
+# Копируем исходный код модулей
+COPY common-lib ./common-lib
+COPY payment-service ./payment-service
 
-# Собираем проект
-RUN gradle build -x test --no-daemon
+# Даем права на выполнение gradlew
+RUN chmod +x gradlew
+
+# Собираем проект (только нужные модули)
+RUN ./gradlew :payment-service:build -x test --no-daemon
 
 # Финальный образ
 FROM eclipse-temurin:21-jre-alpine
@@ -22,7 +28,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Копируем собранный JAR
-COPY --from=build /workspace/build/libs/payment-service-*.jar app.jar
+COPY --from=build /workspace/payment-service/build/libs/*.jar app.jar
 
 # Открываем порт
 EXPOSE 8003
