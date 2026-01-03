@@ -2,25 +2,38 @@ spring:
   application:
     name: user-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/user_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5430/calculation_db}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 20
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    connection-timeout: 5000
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-interval: 10000ms
+        max-attempts: 3
 
 server:
   port: 8000
@@ -31,17 +44,22 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    enabled: ${EUREKA_ENABLED:true}
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus,metrics
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
   metrics:
     distribution:
       sla:
@@ -85,6 +103,6 @@ springdoc:
 
 logging:
   level:
-    org.springdoc: DEBUG
-    org.springframework.web: DEBUG
-    ru.otus.user: DEBUG
+    ru.otus.user: ${LOG_LEVEL:INFO}
+    org.springframework.web: WARN
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:WARN}

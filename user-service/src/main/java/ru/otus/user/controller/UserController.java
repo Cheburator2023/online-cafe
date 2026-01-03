@@ -1,8 +1,6 @@
 package ru.otus.user.controller;
 
 import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.otus.user.dto.UserRequest;
 import ru.otus.user.dto.UserResponse;
+import ru.otus.user.service.MetricsService;
 import ru.otus.user.service.UserService;
 
 import java.util.List;
@@ -26,15 +25,7 @@ import java.util.List;
 @Tag(name = "User API", description = "Operations with users")
 public class UserController {
     private final UserService userService;
-    private final MeterRegistry meterRegistry;
-
-    private Counter buildApiCounter(String method, String statusCode) {
-        return Counter.builder("user_api_calls")
-                .tag("method", method)
-                .tag("status_code", statusCode)
-                .description("Total number of " + method + " calls")
-                .register(meterRegistry);
-    }
+    private final MetricsService metricsService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -49,7 +40,7 @@ public class UserController {
     })
     @Timed(value = "user_api_latency_seconds", extraTags = {"method", "createUser"})
     public UserResponse createUser(@Valid @RequestBody UserRequest userRequest) {
-        buildApiCounter("createUser", "201").increment();
+        metricsService.incrementCounter("createUser", "201");
         return userService.createUser(userRequest);
     }
 
@@ -68,7 +59,7 @@ public class UserController {
             @Parameter(description = "ID of the user to be retrieved", required = true, example = "1")
             @PathVariable Long id
     ) {
-        buildApiCounter("getUser", "200").increment();
+        metricsService.incrementCounter("getUser", "200");
         return userService.getUserById(id);
     }
 
@@ -90,7 +81,7 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody UserRequest userRequest
     ) {
-        buildApiCounter("updateUser", "200").increment();
+        metricsService.incrementCounter("updateUser", "200");
         return userService.updateUser(id, userRequest);
     }
 
@@ -110,7 +101,7 @@ public class UserController {
             @Parameter(description = "ID of the user to be deleted", required = true, example = "1")
             @PathVariable Long id
     ) {
-        buildApiCounter("deleteUser", "204").increment();
+        metricsService.incrementCounter("deleteUser", "204");
         userService.deleteUser(id);
     }
 
@@ -124,7 +115,7 @@ public class UserController {
     })
     @Timed(value = "user_api_latency_seconds", extraTags = {"method", "getAllUsers"})
     public List<UserResponse> getAllUsers() {
-        buildApiCounter("getAllUsers", "200").increment();
+        metricsService.incrementCounter("getAllUsers", "200");
         return userService.getAllUsers();
     }
 }
