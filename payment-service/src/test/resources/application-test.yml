@@ -1,15 +1,40 @@
 spring:
+  application:
+    name: payment-service-test
+
+  datasource:
+    url: jdbc:h2:mem:paymentdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
   flyway:
     enabled: false
+
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
+    template:
+      retry:
+        enabled: false
+    listener:
+      simple:
+        retry:
+          enabled: false
+
+  cloud:
+    discovery:
+      enabled: false
 
 eureka:
   client:
@@ -18,3 +43,9 @@ eureka:
 logging:
   level:
     ru.otus.cafe.payment: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+test:
+  containers:
+    enabled: false

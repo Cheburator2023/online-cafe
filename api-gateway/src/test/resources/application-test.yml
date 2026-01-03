@@ -1,26 +1,89 @@
 spring:
+  application:
+    name: api-gateway-test
+
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: false
-      routes: []
-    discovery:
-      client:
-        simple:
-          instances: {}
+      enabled: false
+    circuitbreaker:
+      resilience4j:
+        enabled: false
+    loadbalancer:
+      enabled: false
+
+  main:
+    web-application-type: reactive
+    allow-bean-definition-overriding: true
+    lazy-initialization: false
+
+  jackson:
+    default-property-inclusion: non_null
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${spring.data.redis.host:localhost}
+      port: ${spring.data.redis.port:6379}
+      timeout: 1000ms
+      connect-timeout: 1000ms
+
+  # Отключаем автоконфигурации Spring Cloud
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.gateway.config.GatewayAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayClassPathWarningAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayRedisAutoConfiguration
+      - org.springframework.cloud.client.CommonsClientAutoConfiguration
+      - org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClientAutoConfiguration
+      - org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration
+      - org.springframework.cloud.commons.config.CommonsConfigAutoConfiguration
+      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
+      - org.springframework.cloud.netflix.eureka.EurekaDiscoveryClientConfiguration
+      - org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JAutoConfiguration
+      - org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JAutoConfiguration
+      - org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration
+      - org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientAutoConfiguration
+      - org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration
+      - org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration
+
+server:
+  port: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+    metrics:
+      enabled: true
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+resilience4j:
+  circuitbreaker:
+    enabled: false
 
 eureka:
   client:
     enabled: false
+    fetch-registry: false
+    register-with-eureka: false
 
 logging:
   level:
+    root: WARN
+    ru.otus.cafe.gateway: INFO
     org.springframework: WARN
+    reactor.netty: WARN
+    org.testcontainers: INFO
     org.springframework.cloud.gateway: OFF
-    reactor.netty: OFF
+    org.springframework.cloud: OFF

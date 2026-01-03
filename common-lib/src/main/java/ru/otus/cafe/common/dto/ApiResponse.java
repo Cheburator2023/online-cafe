@@ -1,19 +1,31 @@
 package ru.otus.cafe.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ApiResponse<T>(
-        String status,
-        T data,
-        String message,
-        String timestamp
-) {
+public class ApiResponse<T> {
+    private boolean success;
+    private String message;
+    private T data;
+    private LocalDateTime timestamp;
+
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>("success", data, null, java.time.Instant.now().toString());
+        return new ApiResponse<>(true, null, data, LocalDateTime.now());
+    }
+
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data, LocalDateTime.now());
     }
 
     public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>("error", null, message, java.time.Instant.now().toString());
+        return new ApiResponse<>(false, message, null, LocalDateTime.now());
     }
 }

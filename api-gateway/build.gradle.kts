@@ -22,35 +22,58 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
+    // Spring Cloud Gateway
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+    // Reactive Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+
+    // Actuator
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Resilience4j
     implementation("io.github.resilience4j:resilience4j-spring-boot3")
     implementation("io.github.resilience4j:resilience4j-reactor")
+
+    // Common library
     implementation(project(":common-lib"))
 
-    // Для корректного определения main class
-    implementation("org.springframework.boot:spring-boot-starter")
+    // WebFlux
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
-    // Добавляем зависимости для OpenAPI/Swagger
+    // SpringDoc OpenAPI для WebFlux
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
-    implementation("org.springdoc:springdoc-openapi-starter-common:2.3.0")
-    implementation("io.swagger.core.v3:swagger-core:2.2.15")
-    implementation("io.swagger.core.v3:swagger-models:2.2.15")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.15")
 
+    // Lombok
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    // Тестирование
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
-    testImplementation("org.testcontainers:rabbitmq")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        showExceptions = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showCauses = true
+        showStackTraces = true
     }
 }

@@ -53,7 +53,6 @@ subprojects {
 
         outputs.upToDateWhen { false }
         systemProperty("java.awt.headless", "true")
-        systemProperty("spring.profiles.active", "test")
     }
 
     tasks.withType<JavaCompile> {
@@ -83,6 +82,7 @@ project(":common-lib") {
         implementation("org.springframework.boot:spring-boot-starter")
         implementation("org.springframework.boot:spring-boot-starter-actuator")
         implementation("io.micrometer:micrometer-core")
+        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
         testImplementation("org.springframework.boot:spring-boot-starter-test")
     }

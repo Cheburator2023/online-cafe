@@ -1,49 +1,117 @@
 spring:
+  application:
+    name: payment-service
+
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5434/payment_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/payment_db}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    connection-timeout: 5000
+
+    # Настройки retry
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 2.0
+          max-interval: 10000
+
   cloud:
     discovery:
-      enabled: false
-      reactive:
-        enabled: false
+      enabled: ${EUREKA_ENABLED:false}
 
-logging:
-  level:
-    ru.otus.cafe.payment: DEBUG
+  config:
+    import: "optional:configserver:"
 
 server:
   port: 8003
   servlet:
     context-path: /
+  shutdown: graceful
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
 
 eureka:
   client:
-    enabled: false
-    fetch-registry: false
-    register-with-eureka: false
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
   instance:
-    prefer-ip-address: false
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: true
+    ip-address: ${IP_ADDRESS:127.0.0.1}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentGateway:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+
+logging:
+  level:
+    ru.otus.cafe.payment: ${LOG_LEVEL:INFO}
+    org.springframework.amqp: WARN
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %5level - %40.40logger{40} : %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} - %5level - %40.40logger{40} : %msg%n"

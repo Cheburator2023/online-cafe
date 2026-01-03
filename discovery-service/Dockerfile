@@ -1,8 +1,8 @@
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-COPY src/discovery-service/build/libs/discovery-service-0.0.1-SNAPSHOT.jar app.jar
+COPY build/libs/discovery-service-*.jar app.jar
 
 EXPOSE 8761
 

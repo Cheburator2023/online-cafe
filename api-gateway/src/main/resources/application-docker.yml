@@ -1,109 +1,168 @@
 spring:
+  profiles:
+    active: docker
+
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: userService
-                fallbackUri: forward:/fallback/user-service
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                redis-rate-limiter.requestedTokens: 1
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
-        - id: menu-service
-          uri: lb://menu-service
-          predicates:
-            - Path=/api/menu/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: menuService
-                fallbackUri: forward:/fallback/menu-service
+    circuitbreaker:
+      resilience4j:
+        instances:
+          user-service:
+            slidingWindowSize: 10
+            minimumNumberOfCalls: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+            waitDurationInOpenState: 5s
+            failureRateThreshold: 50
+            slowCallRateThreshold: 100
+            slowCallDurationThreshold: 2s
+          menu-service:
+            slidingWindowSize: 10
+            minimumNumberOfCalls: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+            waitDurationInOpenState: 5s
+            failureRateThreshold: 50
+          order-service:
+            slidingWindowSize: 10
+            minimumNumberOfCalls: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+            waitDurationInOpenState: 5s
+            failureRateThreshold: 50
+          payment-service:
+            slidingWindowSize: 10
+            minimumNumberOfCalls: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+            waitDurationInOpenState: 5s
+            failureRateThreshold: 50
 
-        - id: order-service
-          uri: lb://order-service
-          predicates:
-            - Path=/api/orders/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: orderService
-                fallbackUri: forward:/fallback/order-service
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      connect-timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
 
-        - id: payment-service
-          uri: lb://payment-service
-          predicates:
-            - Path=/api/payments/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: paymentService
-                fallbackUri: forward:/fallback/payment-service
+  main:
+    web-application-type: reactive
 
-        - id: swagger-user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/v3/api-docs/user-service
-          filters:
-            - RewritePath=/v3/api-docs/user-service, /v3/api-docs
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  forward-headers-strategy: framework
+  address: 0.0.0.0
 
-        - id: swagger
-          uri: lb://user-service
-          predicates:
-            - Path=/v3/api-docs/**
-
-  application:
-    name: api-gateway
-
-  redis:
-    host: redis
-    port: 6379
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+    groups:
+      enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    display-operation-id: false
+    url: /v3/api-docs
+  cache:
+    disabled: true
 
 eureka:
   client:
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
     service-url:
-      defaultZone: http://discovery-service:8761/eureka
+      defaultZone: http://${DISCOVERY_SERVICE:discovery-service}:8761/eureka/
   instance:
     prefer-ip-address: true
-
-server:
-  port: 8080
+    ip-address: ${DOCKER_HOST_IP:}
+    hostname: ${HOSTNAME:api-gateway}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,gateway
+        include: health,info,metrics,prometheus,gateway,circuitbreakers,loggers
+      base-path: /actuator
+      path-mapping:
+        health: health
   endpoint:
     health:
       show-details: always
+      show-components: always
+      probes:
+        enabled: true
     gateway:
+      enabled: true
+    metrics:
       enabled: true
 
 resilience4j:
   circuitbreaker:
     instances:
-      userService:
+      user-service:
         register-health-indicator: true
         sliding-window-size: 10
         minimum-number-of-calls: 5
-      menuService:
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 2s
+        automatic-transition-from-open-to-half-open-enabled: true
+        writable-stack-trace-enabled: false
+      menu-service:
         register-health-indicator: true
         sliding-window-size: 10
-      orderService:
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        automatic-transition-from-open-to-half-open-enabled: true
+      order-service:
         register-health-indicator: true
         sliding-window-size: 10
-      paymentService:
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        automatic-transition-from-open-to-half-open-enabled: true
+      payment-service:
         register-health-indicator: true
         sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        automatic-transition-from-open-to-half-open-enabled: true
+
+logging:
+  level:
+    ru.otus.cafe.gateway: ${LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
+    reactor.netty: ${REACTOR_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

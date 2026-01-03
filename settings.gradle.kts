@@ -7,3 +7,9 @@ include("payment-service")
 include("api-gateway")
 include("common-lib")
 include("discovery-service")
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

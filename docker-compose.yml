@@ -194,6 +194,8 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
+      EUREKA_ENABLED: true
+      LOG_LEVEL: INFO
     ports:
       - "8003:8003"
     depends_on:

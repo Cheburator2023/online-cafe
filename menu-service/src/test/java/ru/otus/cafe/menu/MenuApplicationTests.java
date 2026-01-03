@@ -25,8 +25,7 @@ class MenuApplicationTests {
             .withPassword("test");
 
     @Container
-    static RabbitMQContainer rabbitMQ = new RabbitMQContainer("rabbitmq:3.12-management")
-            .withExposedPorts(5672);
+    static RabbitMQContainer rabbitMQ = new RabbitMQContainer("rabbitmq:3.12-management");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
