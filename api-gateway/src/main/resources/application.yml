@@ -86,7 +86,10 @@ management:
       show-components: always
       probes:
         enabled: true
+    circuitbreakers:
+      enabled: true
 
+# Resilience4j CircuitBreaker конфигурация
 resilience4j:
   circuitbreaker:
     instances:

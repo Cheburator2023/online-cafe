@@ -218,19 +218,23 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_URL: http://discovery-service:8761/eureka
+      SPRING_CLOUD_DISCOVERY_ENABLED: true
+      EUREKA_CLIENT_ENABLED: true
+      EUREKA_CLIENT_FETCH_REGISTRY: true
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: true
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
     ports:
       - "8080:8080"
     depends_on:
-      - user-service
-      - menu-service
-      - order-service
-      - payment-service
-      - discovery-service
+      discovery-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
 volumes:
   user_postgres_data:

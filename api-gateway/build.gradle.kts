@@ -59,6 +59,9 @@ dependencies {
     testImplementation("org.awaitility:awaitility:4.2.0")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
+
+    // Для работы с JSON в тестах
+    testImplementation("com.jayway.jsonpath:json-path:2.8.0")
 }
 
 dependencyManagement {

@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,15 +45,34 @@ public class ApiGatewayApplication {
 
     @Configuration
     @Profile("test")
-    @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", havingValue = "false")
     static class TestWebFluxConfig {
 
         @Bean
         public RouterFunction<ServerResponse> testRoutes() {
             return route(GET("/actuator/health"),
-                    request -> ServerResponse.ok().bodyValue("{\"status\":\"UP\"}"))
+                    request -> ServerResponse.ok()
+                            .bodyValue("{\"status\":\"UP\",\"components\":{\"redis\":{\"status\":\"UP\"}}}"))
+                    .andRoute(GET("/actuator/info"),
+                            request -> ServerResponse.ok()
+                                    .bodyValue("{\"app\":{\"name\":\"api-gateway-test\",\"version\":\"0.0.1-SNAPSHOT\"}}"))
                     .andRoute(GET("/swagger-ui.html"),
-                            request -> ServerResponse.ok().bodyValue("Swagger UI"));
+                            request -> ServerResponse.ok().bodyValue("Swagger UI"))
+                    .andRoute(GET("/"),
+                            request -> ServerResponse.temporaryRedirect(
+                                    java.net.URI.create("/swagger-ui.html")
+                            ).build())
+                    .andRoute(GET("/api/user/**"),
+                            request -> ServerResponse.ok()
+                                    .bodyValue("{\"message\":\"User service mock response\"}"))
+                    .andRoute(GET("/api/menu/**"),
+                            request -> ServerResponse.ok()
+                                    .bodyValue("{\"message\":\"Menu service mock response\"}"))
+                    .andRoute(GET("/api/order/**"),
+                            request -> ServerResponse.ok()
+                                    .bodyValue("{\"message\":\"Order service mock response\"}"))
+                    .andRoute(GET("/api/payment/**"),
+                            request -> ServerResponse.ok()
+                                    .bodyValue("{\"message\":\"Payment service mock response\"}"));
         }
     }
 }

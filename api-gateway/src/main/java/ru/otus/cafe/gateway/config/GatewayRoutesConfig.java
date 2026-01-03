@@ -49,10 +49,15 @@ public class GatewayRoutesConfig {
                     .uri(uriPrefix + serviceId.toUpperCase()));
         }
 
+        // Маршрут для Actuator
+        routes.route("actuator", r -> r
+                .path("/actuator/**")
+                .uri(uriPrefix + "API-GATEWAY"));
+
         // Маршрут для Swagger UI
         routes.route("swagger-ui", r -> r
-                .path("/swagger-ui.html", "/webjars/**", "/v3/api-docs/**")
-                .uri("http://localhost:8080"));
+                .path("/swagger-ui.html", "/webjars/**", "/v3/api-docs/**", "/swagger-resources/**")
+                .uri(uriPrefix + "API-GATEWAY"));
 
         return routes.build();
     }

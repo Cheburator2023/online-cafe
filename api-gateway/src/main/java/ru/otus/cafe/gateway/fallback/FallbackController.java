@@ -20,7 +20,9 @@ public class FallbackController {
             "user", "User",
             "menu", "Menu",
             "order", "Order",
-            "payment", "Payment"
+            "payment", "Payment",
+            "health", "Health",
+            "actuator", "Actuator"
     );
 
     @GetMapping("/fallback/{service}")
@@ -53,5 +55,16 @@ public class FallbackController {
     @GetMapping("/fallback/payment-service")
     public ResponseEntity<ApiResponse<Void>> paymentServiceFallback() {
         return serviceFallback("payment");
+    }
+
+    // Новый метод для Actuator fallback
+    @GetMapping("/fallback/actuator")
+    public ResponseEntity<ApiResponse<Void>> actuatorFallback() {
+        return serviceFallback("actuator");
+    }
+
+    @GetMapping("/fallback/health")
+    public ResponseEntity<ApiResponse<Void>> healthFallback() {
+        return serviceFallback("health");
     }
 }
