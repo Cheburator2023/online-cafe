@@ -8,9 +8,10 @@ COPY gradle gradle
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
 COPY menu-service/build.gradle.kts menu-service/
+COPY common-lib/build.gradle.kts common-lib/
 
 # Собираем приложение
-RUN ./gradlew :menu-service:build -x test
+RUN ./gradlew :menu-service:build -x test --no-daemon
 
 # Финальный образ
 FROM eclipse-temurin:21-jre-alpine

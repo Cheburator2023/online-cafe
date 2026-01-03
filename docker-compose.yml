@@ -130,6 +130,7 @@ services:
       context: .
       dockerfile: menu-service/Dockerfile
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://menu-postgresql:5432/menu_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
@@ -138,6 +139,8 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
+      LOG_LEVEL: INFO
+      SHOW_SQL: false
     ports:
       - "8001:8001"
     depends_on:
@@ -152,6 +155,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   order-service:
     build:
