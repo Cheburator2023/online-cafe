@@ -1,21 +1,12 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    id("java")
 }
 
 springBoot {
     mainClass.set("ru.otus.cafe.menu.MenuApplication")
 }
 
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    archiveFileName.set("menu-service-${project.version}.jar")
-}
-
-tasks.named<Jar>("jar") {
-    enabled = true
-    archiveClassifier.set("")
-}
 
 dependencies {
     implementation(project(":common-lib"))
@@ -45,19 +36,14 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
-    }
-}
-
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+        setExceptionFormat("full")
         showExceptions = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         showCauses = true
         showStackTraces = true
     }
+    systemProperty("spring.profiles.active", "test")
 }

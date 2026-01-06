@@ -1,24 +1,10 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    id("java")
 }
-
-group = "ru.otus.cafe"
-version = "0.0.1-SNAPSHOT"
 
 springBoot {
     mainClass.set("ru.otus.user.UserApplication")
-}
-
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    mainClass.set("ru.otus.user.UserApplication")
-    archiveFileName.set("user-service-${version}.jar")
-}
-
-tasks.named<Jar>("jar") {
-    enabled = true
-    archiveClassifier.set("")
 }
 
 dependencies {
@@ -44,4 +30,16 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:rabbitmq")
     testImplementation("com.h2database:h2")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        setExceptionFormat("full")
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+    systemProperty("spring.profiles.active", "test")
 }

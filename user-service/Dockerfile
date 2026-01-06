@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-COPY src/user-service/build/libs/user-service-0.0.1-SNAPSHOT.jar app.jar
+COPY user-service/build/libs/user-service-*.jar app.jar
 
 EXPOSE 8000
 

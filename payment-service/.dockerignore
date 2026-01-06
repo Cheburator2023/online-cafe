@@ -1,9 +1,0 @@
-# Игнорируем всё, кроме необходимого для сборки
-*
-!src/
-!build.gradle.kts
-!gradle/
-!gradlew
-!gradle-wrapper.properties
-!Dockerfile
-!settings.gradle.kts

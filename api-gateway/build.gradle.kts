@@ -1,7 +1,6 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    id("java")
 }
 
 group = "ru.otus.cafe"
@@ -9,16 +8,6 @@ version = "0.0.1-SNAPSHOT"
 
 springBoot {
     mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
-}
-
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    mainClass.set("ru.otus.cafe.gateway.ApiGatewayApplication")
-    archiveFileName.set("api-gateway-${version}.jar")
-}
-
-tasks.named<Jar>("jar") {
-    enabled = true
-    archiveClassifier.set("")
 }
 
 dependencies {
@@ -64,19 +53,14 @@ dependencies {
     testImplementation("com.jayway.jsonpath:json-path:2.8.0")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
-    }
-}
-
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+        setExceptionFormat("full")
         showExceptions = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         showCauses = true
         showStackTraces = true
     }
+    systemProperty("spring.profiles.active", "test")
 }

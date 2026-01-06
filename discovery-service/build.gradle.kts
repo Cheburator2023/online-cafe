@@ -1,25 +1,10 @@
 plugins {
-    id("org.springframework.boot") version "3.2.0"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
-group = "ru.otus.cafe"
-version = "0.0.1-SNAPSHOT"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-}
-
-repositories {
-    mavenCentral()
-}
-
-extra["springCloudVersion"] = "2023.0.0"
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
+springBoot {
+    mainClass.set("ru.otus.cafe.discovery.DiscoveryApplication")
 }
 
 dependencies {
@@ -29,10 +14,14 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
-}
-
-springBoot {
-    mainClass.set("ru.otus.cafe.discovery.DiscoveryApplication")
+    testLogging {
+        events("passed", "skipped", "failed")
+        setExceptionFormat("full")
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+    systemProperty("spring.profiles.active", "test")
 }
