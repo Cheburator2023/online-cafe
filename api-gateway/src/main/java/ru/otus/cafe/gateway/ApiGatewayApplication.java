@@ -51,28 +51,12 @@ public class ApiGatewayApplication {
         public RouterFunction<ServerResponse> testRoutes() {
             return route(GET("/actuator/health"),
                     request -> ServerResponse.ok()
-                            .bodyValue("{\"status\":\"UP\",\"components\":{\"redis\":{\"status\":\"UP\"}}}"))
+                            .bodyValue("{\"status\":\"UP\"}"))
                     .andRoute(GET("/actuator/info"),
                             request -> ServerResponse.ok()
-                                    .bodyValue("{\"app\":{\"name\":\"api-gateway-test\",\"version\":\"0.0.1-SNAPSHOT\"}}"))
+                                    .bodyValue("{\"app\":{\"name\":\"api-gateway-test\"}}"))
                     .andRoute(GET("/swagger-ui.html"),
-                            request -> ServerResponse.ok().bodyValue("Swagger UI"))
-                    .andRoute(GET("/"),
-                            request -> ServerResponse.temporaryRedirect(
-                                    java.net.URI.create("/swagger-ui.html")
-                            ).build())
-                    .andRoute(GET("/api/user/**"),
-                            request -> ServerResponse.ok()
-                                    .bodyValue("{\"message\":\"User service mock response\"}"))
-                    .andRoute(GET("/api/menu/**"),
-                            request -> ServerResponse.ok()
-                                    .bodyValue("{\"message\":\"Menu service mock response\"}"))
-                    .andRoute(GET("/api/order/**"),
-                            request -> ServerResponse.ok()
-                                    .bodyValue("{\"message\":\"Order service mock response\"}"))
-                    .andRoute(GET("/api/payment/**"),
-                            request -> ServerResponse.ok()
-                                    .bodyValue("{\"message\":\"Payment service mock response\"}"));
+                            request -> ServerResponse.ok().bodyValue("Swagger UI"));
         }
     }
 }

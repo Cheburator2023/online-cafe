@@ -6,8 +6,7 @@ spring:
     gateway:
       enabled: false
     circuitbreaker:
-      resilience4j:
-        enabled: false
+      enabled: false
     loadbalancer:
       enabled: false
 
@@ -19,12 +18,10 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
+  # Отключаем Redis полностью в тестах
   data:
     redis:
-      host: ${spring.data.redis.host:localhost}
-      port: ${spring.data.redis.port:6379}
-      timeout: 1000ms
-      connect-timeout: 1000ms
+      enabled: false
 
   # Отключаем только необходимые автоконфигурации
   autoconfigure:
@@ -35,47 +32,102 @@ spring:
       - org.springframework.cloud.gateway.config.GatewayRedisAutoConfiguration
       - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
       - org.springframework.cloud.netflix.eureka.EurekaDiscoveryClientConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.data.redis.RedisHealthContributorAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.health.HealthContributorAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration
 
 server:
   port: 0
 
+# Упрощенная конфигурация Actuator для тестов
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info
       base-path: /actuator
   endpoint:
     health:
-      show-details: when-authorized
-      show-components: when-authorized
+      enabled: true
+      show-details: never
       probes:
         enabled: false
-    metrics:
+    info:
+      enabled: true
+  # Отключаем все группы здоровья в тестах
+  health:
+    defaults:
+      enabled: false
+    diskspace:
+      enabled: true
+    # Отключаем все остальные health indicators
+    cassandra:
+      enabled: false
+    couchbase:
+      enabled: false
+    db:
+      enabled: false
+    elasticsearch:
+      enabled: false
+    hazelcast:
+      enabled: false
+    influxdb:
+      enabled: false
+    jms:
+      enabled: false
+    ldap:
+      enabled: false
+    mail:
+      enabled: false
+    mongo:
+      enabled: false
+    neo4j:
+      enabled: false
+    ping:
+      enabled: false
+    rabbit:
+      enabled: false
+    redis:
+      enabled: false
+    solr:
       enabled: false
 
+# Отключаем SpringDoc в тестах
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
 
+# Отключаем Resilience4j в тестах
 resilience4j:
   circuitbreaker:
     enabled: false
 
+# Отключаем Eureka в тестах
 eureka:
   client:
     enabled: false
     fetch-registry: false
     register-with-eureka: false
+    healthcheck:
+      enabled: false
+  instance:
+    enabled: false
 
+# Упрощенная конфигурация логирования для тестов
 logging:
   level:
     root: WARN
     ru.otus.cafe.gateway: INFO
     org.springframework: WARN
     reactor.netty: WARN
-    org.testcontainers: INFO
-    org.springframework.cloud.gateway: OFF
+    org.springframework.boot.actuate: WARN
     org.springframework.cloud: OFF
+    org.springframework.cloud.gateway: OFF
+    io.lettuce: OFF
+    com.netflix: OFF
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
