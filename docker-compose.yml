@@ -1,5 +1,12 @@
 version: '3.8'
 
+networks:
+  cafe-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
 services:
   # Service Discovery
   discovery-service:
@@ -8,11 +15,43 @@ services:
       - "8761:8761"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8761
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 30s
       timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Кэширование и rate limiting
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass redispass
+      --protected-mode no
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --bind 0.0.0.0
+      --port 6379
+    networks:
+      - cafe-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
       retries: 3
+      start_period: 30s
+    environment:
+      - REDIS_PASSWORD=redispass
 
   # Базы данных
   user-postgresql:
@@ -25,11 +64,14 @@ services:
       - "5432:5432"
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   menu-postgresql:
     image: postgres:15
@@ -41,11 +83,14 @@ services:
       - "5433:5432"
     volumes:
       - menu_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   order-postgresql:
     image: postgres:15
@@ -57,11 +102,14 @@ services:
       - "5434:5432"
     volumes:
       - order_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   payment-postgresql:
     image: postgres:15
@@ -73,11 +121,14 @@ services:
       - "5435:5432"
     volumes:
       - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   # Message Broker
   rabbitmq:
@@ -85,16 +136,20 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - cafe-network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   # Микросервисы
   user-service:
@@ -110,8 +165,11 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8000:8000"
+    networks:
+      - cafe-network
     depends_on:
       user-postgresql:
         condition: service_healthy
@@ -124,6 +182,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 120s
 
   menu-service:
     build:
@@ -143,6 +202,8 @@ services:
       SHOW_SQL: false
     ports:
       - "8001:8001"
+    networks:
+      - cafe-network
     depends_on:
       menu-postgresql:
         condition: service_healthy
@@ -155,7 +216,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 120s
 
   order-service:
     build:
@@ -170,8 +231,11 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8002:8002"
+    networks:
+      - cafe-network
     depends_on:
       order-postgresql:
         condition: service_healthy
@@ -184,6 +248,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 120s
 
   payment-service:
     build:
@@ -200,8 +265,11 @@ services:
       EUREKA_URL: http://discovery-service:8761/eureka
       EUREKA_ENABLED: true
       LOG_LEVEL: INFO
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8003:8003"
+    networks:
+      - cafe-network
     depends_on:
       payment-postgresql:
         condition: service_healthy
@@ -214,33 +282,49 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 120s
 
   api-gateway:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
+    hostname: api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redispass
+      REDIS_USERNAME: default
+      SPRING_DATA_REDIS_CLIENT_TYPE: lettuce
       EUREKA_URL: http://discovery-service:8761/eureka
+      DISCOVERY_SERVICE: discovery-service
       SPRING_CLOUD_DISCOVERY_ENABLED: true
       EUREKA_CLIENT_ENABLED: true
       EUREKA_CLIENT_FETCH_REGISTRY: true
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: true
       SERVER_SHUTDOWN: graceful
       SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
+      DOCKER_HOST_IP: api-gateway
     ports:
       - "8080:8080"
+    networks:
+      cafe-network:
+        aliases:
+          - api-gateway
     depends_on:
       discovery-service:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 120s
 
 volumes:
+  redis_data:
   user_postgres_data:
   menu_postgres_data:
   order_postgres_data:

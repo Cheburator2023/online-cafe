@@ -10,6 +10,8 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven { url = uri("https://repo.spring.io/milestone") }
+        maven { url = uri("https://repo.spring.io/snapshot") }
     }
 }
 
@@ -33,6 +35,7 @@ subprojects {
         imports {
             mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.2.0")
+            mavenBom("org.testcontainers:testcontainers-bom:1.19.3")
         }
     }
 

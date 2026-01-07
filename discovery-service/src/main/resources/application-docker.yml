@@ -1,0 +1,57 @@
+server:
+  port: 8761
+  shutdown: graceful
+
+spring:
+  application:
+    name: discovery-service
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  cloud:
+    loadbalancer:
+      health-check:
+        initial-delay: 30s  # Задержка перед началом проверок здоровья
+
+eureka:
+  instance:
+    hostname: discovery-service
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    healthcheck:
+      enabled: true
+  server:
+    enable-self-preservation: false
+    wait-time-in-ms-when-sync-empty: 0
+    response-cache-update-interval-ms: 5000
+    eviction-interval-timer-in-ms: 60000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    org.springframework.cloud: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"

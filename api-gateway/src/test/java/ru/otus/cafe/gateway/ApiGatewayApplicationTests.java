@@ -1,3 +1,5 @@
+// C:\Users\Zver\IdeaProjects\online-cafe\api-gateway\src\test\java\ru\otus\cafe\gateway\ApiGatewayApplicationTests.java
+
 package ru.otus.cafe.gateway;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -48,6 +50,7 @@ class ApiGatewayApplicationTests {
         registry.add("spring.data.redis.port", () -> redisPort.toString());
         registry.add("spring.data.redis.timeout", () -> "1000ms");
         registry.add("spring.data.redis.connect-timeout", () -> "1000ms");
+        registry.add("spring.data.redis.password", () -> "");
     }
 
     @Autowired

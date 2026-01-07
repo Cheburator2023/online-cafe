@@ -1,7 +1,4 @@
 spring:
-  profiles:
-    active: docker
-
   cloud:
     gateway:
       discovery:
@@ -11,51 +8,48 @@ spring:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
-    circuitbreaker:
-      resilience4j:
-        instances:
-          user-service:
-            slidingWindowSize: 10
-            minimumNumberOfCalls: 5
-            permittedNumberOfCallsInHalfOpenState: 3
-            waitDurationInOpenState: 5s
-            failureRateThreshold: 50
-            slowCallRateThreshold: 100
-            slowCallDurationThreshold: 2s
-          menu-service:
-            slidingWindowSize: 10
-            minimumNumberOfCalls: 5
-            permittedNumberOfCallsInHalfOpenState: 3
-            waitDurationInOpenState: 5s
-            failureRateThreshold: 50
-          order-service:
-            slidingWindowSize: 10
-            minimumNumberOfCalls: 5
-            permittedNumberOfCallsInHalfOpenState: 3
-            waitDurationInOpenState: 5s
-            failureRateThreshold: 50
-          payment-service:
-            slidingWindowSize: 10
-            minimumNumberOfCalls: 5
-            permittedNumberOfCallsInHalfOpenState: 3
-            waitDurationInOpenState: 5s
-            failureRateThreshold: 50
+    # Настройка LoadBalancer с Caffeine cache
+    loadbalancer:
+      cache:
+        enabled: true
+        caffeine:
+          spec: maximumSize=500,expireAfterWrite=300s
+      health-check:
+        interval: 30s
+        initial-delay: 10s
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=600s
 
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-      timeout: 2000ms
+      password: ${REDIS_PASSWORD:redispass}
+      username: ${REDIS_USERNAME:}
+      timeout: 5000ms
       connect-timeout: 2000ms
+      client-type: lettuce
       lettuce:
         pool:
           max-active: 8
           max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
+          min-idle: 2
+          max-wait: 2000ms
+          time-between-eviction-runs: 30000ms
+        shutdown-timeout: 200ms
 
   main:
     web-application-type: reactive
+    allow-bean-definition-overriding: true
+
+  # Отключаем RabbitMQ автоконфигурацию в API Gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 
 server:
   port: ${SERVER_PORT:8080}
@@ -93,13 +87,36 @@ eureka:
     registry-fetch-interval-seconds: 5
     service-url:
       defaultZone: http://${DISCOVERY_SERVICE:discovery-service}:8761/eureka/
+    healthcheck:
+      enabled: true
+    eureka-service-url-poll-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 30
+    instance-info-replication-interval-seconds: 30
+    eureka-connection-idle-timeout-seconds: 30
+    eureka-server-read-timeout-seconds: 10
+    eureka-server-connect-timeout-seconds: 5
+    eureka-server-total-connections: 50
+    eureka-server-total-connections-per-host: 10
+    use-dns-for-fetching-service-urls: false
+    filter-only-up-instances: true
+    prefer-same-zone-eureka: true
   instance:
     prefer-ip-address: true
     ip-address: ${DOCKER_HOST_IP:}
     hostname: ${HOSTNAME:api-gateway}
+    instance-id: ${spring.application.name}:${server.port}
+    appname: ${spring.application.name}
+    virtual-host-name: ${spring.application.name}
+    secure-virtual-host-name: ${spring.application.name}
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 30
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+    metadata-map:
+      management.port: ${server.port}
+      zone: default
+      profile: ${spring.profiles.active:docker}
 
 management:
   endpoints:
@@ -111,14 +128,27 @@ management:
         health: health
   endpoint:
     health:
-      show-details: always
-      show-components: always
+      show-details: when-authorized
+      show-components: when-authorized
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,redis,redisCommand,diskSpace
+        liveness:
+          include: livenessState
     gateway:
       enabled: true
     metrics:
       enabled: true
+
+  # Отключаем проверку здоровья RabbitMQ в API Gateway через конфигурацию
+  health:
+    rabbit:
+      enabled: false
+    redis:
+      enabled: true
+      timeout: 3000ms
 
 resilience4j:
   circuitbreaker:
@@ -128,10 +158,10 @@ resilience4j:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 5s
+        wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
         slow-call-rate-threshold: 100
-        slow-call-duration-threshold: 2s
+        slow-call-duration-threshold: 5s
         automatic-transition-from-open-to-half-open-enabled: true
         writable-stack-trace-enabled: false
       menu-service:
@@ -139,7 +169,7 @@ resilience4j:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 5s
+        wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
         automatic-transition-from-open-to-half-open-enabled: true
       order-service:
@@ -147,7 +177,7 @@ resilience4j:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 5s
+        wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
         automatic-transition-from-open-to-half-open-enabled: true
       payment-service:
@@ -155,14 +185,24 @@ resilience4j:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 5s
+        wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
         automatic-transition-from-open-to-half-open-enabled: true
 
 logging:
   level:
     ru.otus.cafe.gateway: ${LOG_LEVEL:INFO}
+    ru.otus.cafe.gateway.config.EurekaConfig: DEBUG
+    ru.otus.cafe.gateway.config.LoadBalancerConfig: DEBUG
+    ru.otus.cafe.gateway.config.RedisConfig: DEBUG
+    ru.otus.cafe.gateway.config.RedisHealthConfig: DEBUG
+    org.springframework.cloud.netflix.eureka: ${EUREKA_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.loadbalancer: ${LOADBALANCER_LOG_LEVEL:INFO}
+    org.springframework.data.redis: ${REDIS_LOG_LEVEL:INFO}
     org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
     reactor.netty: ${REACTOR_LOG_LEVEL:INFO}
+    com.netflix.eureka: ${EUREKA_LOG_LEVEL:WARN}
+    com.netflix.discovery: ${EUREKA_DISCOVERY_LOG_LEVEL:DEBUG}
+    io.lettuce.core: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
