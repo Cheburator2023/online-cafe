@@ -58,7 +58,7 @@ logging:
   level:
     ru.otus.cafe.menu: ${LOG_LEVEL:INFO}
     org.hibernate.SQL: ${HIBERNATE_SQL_LOG:WARN}
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

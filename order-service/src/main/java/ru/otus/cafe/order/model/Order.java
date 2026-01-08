@@ -28,31 +28,49 @@ public class Order {
     private OrderStatus status = OrderStatus.PENDING;
 
     @Column(nullable = false)
-    private BigDecimal totalAmount;
+    @Setter
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     private String specialInstructions;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "updated_at")
+    @Setter
+    private Instant updatedAt;
+
+    @Version
+    private Long version;
+
     public Order(Long userId, String specialInstructions) {
         this.userId = userId;
         this.specialInstructions = specialInstructions;
-        this.totalAmount = BigDecimal.ZERO;
     }
 
     public void addItem(OrderItem item) {
         items.add(item);
+        item.setOrder(this);
         recalculateTotal();
     }
 
-    private void recalculateTotal() {
+    public void removeItem(OrderItem item) {
+        items.remove(item);
+        item.setOrder(null);
+        recalculateTotal();
+    }
+
+    public void recalculateTotal() {
         this.totalAmount = items.stream()
                 .map(OrderItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
     }
 }

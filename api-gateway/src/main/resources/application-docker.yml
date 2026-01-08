@@ -192,17 +192,17 @@ resilience4j:
 logging:
   level:
     ru.otus.cafe.gateway: ${LOG_LEVEL:INFO}
-    ru.otus.cafe.gateway.config.EurekaConfig: DEBUG
-    ru.otus.cafe.gateway.config.LoadBalancerConfig: DEBUG
-    ru.otus.cafe.gateway.config.RedisConfig: DEBUG
-    ru.otus.cafe.gateway.config.RedisHealthConfig: DEBUG
-    org.springframework.cloud.netflix.eureka: ${EUREKA_LOG_LEVEL:DEBUG}
+    ru.otus.cafe.gateway.config.EurekaConfig: INFO
+    ru.otus.cafe.gateway.config.LoadBalancerConfig: INFO
+    ru.otus.cafe.gateway.config.RedisConfig: INFO
+    ru.otus.cafe.gateway.config.RedisHealthConfig: INFO
+    org.springframework.cloud.netflix.eureka: ${EUREKA_LOG_LEVEL:INFO}
     org.springframework.cloud.loadbalancer: ${LOADBALANCER_LOG_LEVEL:INFO}
     org.springframework.data.redis: ${REDIS_LOG_LEVEL:INFO}
     org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
     reactor.netty: ${REACTOR_LOG_LEVEL:INFO}
     com.netflix.eureka: ${EUREKA_LOG_LEVEL:WARN}
-    com.netflix.discovery: ${EUREKA_DISCOVERY_LOG_LEVEL:DEBUG}
-    io.lettuce.core: DEBUG
+    com.netflix.discovery: ${EUREKA_DISCOVERY_LOG_LEVEL:INFO}
+    io.lettuce.core: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

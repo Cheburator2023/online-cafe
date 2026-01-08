@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import ru.otus.cafe.common.event.OrderCreatedEvent;
+import ru.otus.cafe.common.event.OrderStatusUpdatedEvent;
 import ru.otus.cafe.order.model.Order;
 import ru.otus.cafe.order.model.OrderItem;
 
@@ -29,6 +30,19 @@ public class OrderEventPublisher {
 
         rabbitTemplate.convertAndSend("order.exchange", "order.created", event);
         log.info("Published order created event for order ID: {}", order.getId());
+    }
+
+    public void publishOrderStatusUpdatedEvent(Order order, String oldStatus) {
+        OrderStatusUpdatedEvent event = new OrderStatusUpdatedEvent(
+                order.getId(),
+                order.getUserId(),
+                order.getStatus().name(),
+                oldStatus,
+                order.getUpdatedAt() != null ? order.getUpdatedAt() : order.getCreatedAt()
+        );
+
+        rabbitTemplate.convertAndSend("order.exchange", "order.status.updated", event);
+        log.info("Published order status updated event for order ID: {}", order.getId());
     }
 
     private ru.otus.cafe.common.event.OrderItemEvent toOrderItemEvent(OrderItem item) {
