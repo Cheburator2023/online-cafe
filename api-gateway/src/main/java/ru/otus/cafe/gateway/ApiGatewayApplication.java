@@ -13,6 +13,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import java.net.URI;
+
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -56,7 +58,13 @@ public class ApiGatewayApplication {
                             request -> ServerResponse.ok()
                                     .bodyValue("{\"app\":{\"name\":\"api-gateway-test\"}}"))
                     .andRoute(GET("/swagger-ui.html"),
-                            request -> ServerResponse.ok().bodyValue("Swagger UI"));
+                            request -> ServerResponse.ok().bodyValue("Swagger UI"))
+                    // Редирект с корневого пути на Swagger UI
+                    .andRoute(GET("/"),
+                            request -> ServerResponse.temporaryRedirect(URI.create("/swagger-ui.html")).build())
+                    // Редирект с /swagger на Swagger UI
+                    .andRoute(GET("/swagger"),
+                            request -> ServerResponse.temporaryRedirect(URI.create("/swagger-ui.html")).build());
         }
     }
 }

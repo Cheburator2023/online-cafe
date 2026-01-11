@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import ru.otus.cafe.gateway.controller.SwaggerController;
 import ru.otus.cafe.gateway.fallback.FallbackController;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,8 +35,8 @@ class ApiGatewayApplicationTests {
     @Test
     void contextLoads() {
         assertNotNull(context);
+        // SwaggerController был удален, проверяем только FallbackController
         assertNotNull(context.getBean(FallbackController.class));
-        assertNotNull(context.getBean(SwaggerController.class));
     }
 
     @Test
@@ -52,7 +51,6 @@ class ApiGatewayApplicationTests {
     }
 
     @Test
-    @Disabled
     void swaggerUiRedirect() {
         webTestClient.get().uri("/")
                 .exchange()
@@ -66,6 +64,14 @@ class ApiGatewayApplicationTests {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).isEqualTo("Swagger UI");
+    }
+
+    @Test
+    void swaggerRedirectEndpoint() {
+        webTestClient.get().uri("/swagger")
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals("Location", "/swagger-ui.html");
     }
 
     @Test

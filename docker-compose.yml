@@ -11,13 +11,16 @@ services:
   # Service Discovery
   discovery-service:
     build: discovery-service
+    container_name: discovery-service
     ports:
       - "8761:8761"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8761
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - discovery-service
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 30s
@@ -28,6 +31,7 @@ services:
   # Кэширование и rate limiting
   redis:
     image: redis:7-alpine
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -43,7 +47,9 @@ services:
       --bind 0.0.0.0
       --port 6379
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - redis
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 30s
@@ -56,6 +62,7 @@ services:
   # Базы данных
   user-postgresql:
     image: postgres:15
+    container_name: user-postgresql
     environment:
       POSTGRES_DB: user_db
       POSTGRES_USER: postgres
@@ -65,7 +72,9 @@ services:
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - user-postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -75,6 +84,7 @@ services:
 
   menu-postgresql:
     image: postgres:15
+    container_name: menu-postgresql
     environment:
       POSTGRES_DB: menu_db
       POSTGRES_USER: postgres
@@ -84,7 +94,9 @@ services:
     volumes:
       - menu_postgres_data:/var/lib/postgresql/data
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - menu-postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -94,6 +106,7 @@ services:
 
   order-postgresql:
     image: postgres:15
+    container_name: order-postgresql
     environment:
       POSTGRES_DB: order_db
       POSTGRES_USER: postgres
@@ -103,7 +116,9 @@ services:
     volumes:
       - order_postgres_data:/var/lib/postgresql/data
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - order-postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -113,6 +128,7 @@ services:
 
   payment-postgresql:
     image: postgres:15
+    container_name: payment-postgresql
     environment:
       POSTGRES_DB: payment_db
       POSTGRES_USER: postgres
@@ -122,7 +138,9 @@ services:
     volumes:
       - payment_postgres_data:/var/lib/postgresql/data
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - payment-postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
@@ -133,6 +151,7 @@ services:
   # Message Broker
   rabbitmq:
     image: rabbitmq:3.12-management
+    container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -143,7 +162,9 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 30s
@@ -156,6 +177,7 @@ services:
     build:
       context: .
       dockerfile: user-service/Dockerfile
+    container_name: user-service
     environment:
       DB_URL: jdbc:postgresql://user-postgresql:5432/user_db
       DB_USERNAME: postgres
@@ -166,10 +188,14 @@ services:
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8000
+      SPRING_APPLICATION_NAME: user-service
     ports:
       - "8000:8000"
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - user-service
     depends_on:
       user-postgresql:
         condition: service_healthy
@@ -188,6 +214,7 @@ services:
     build:
       context: .
       dockerfile: menu-service/Dockerfile
+    container_name: menu-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://menu-postgresql:5432/menu_db
@@ -200,10 +227,14 @@ services:
       EUREKA_URL: http://discovery-service:8761/eureka
       LOG_LEVEL: INFO
       SHOW_SQL: false
+      SERVER_PORT: 8001
+      SPRING_APPLICATION_NAME: menu-service
     ports:
       - "8001:8001"
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - menu-service
     depends_on:
       menu-postgresql:
         condition: service_healthy
@@ -222,6 +253,7 @@ services:
     build:
       context: .
       dockerfile: order-service/Dockerfile
+    container_name: order-service
     environment:
       DB_URL: jdbc:postgresql://order-postgresql:5432/order_db
       DB_USERNAME: postgres
@@ -232,10 +264,14 @@ services:
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8002
+      SPRING_APPLICATION_NAME: order-service
     ports:
       - "8002:8002"
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - order-service
     depends_on:
       order-postgresql:
         condition: service_healthy
@@ -254,6 +290,7 @@ services:
     build:
       context: .
       dockerfile: payment-service/Dockerfile
+    container_name: payment-service
     environment:
       DB_URL: jdbc:postgresql://payment-postgresql:5432/payment_db
       DB_USERNAME: postgres
@@ -266,10 +303,14 @@ services:
       EUREKA_ENABLED: true
       LOG_LEVEL: INFO
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8003
+      SPRING_APPLICATION_NAME: payment-service
     ports:
       - "8003:8003"
     networks:
-      - cafe-network
+      cafe-network:
+        aliases:
+          - payment-service
     depends_on:
       payment-postgresql:
         condition: service_healthy
@@ -288,7 +329,7 @@ services:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
-    hostname: api-gateway
+    container_name: api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
       REDIS_HOST: redis
@@ -302,9 +343,21 @@ services:
       EUREKA_CLIENT_ENABLED: true
       EUREKA_CLIENT_FETCH_REGISTRY: true
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: true
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: true
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
       SERVER_SHUTDOWN: graceful
       SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
-      DOCKER_HOST_IP: api-gateway
+      SERVER_PORT: 8080
+      SPRING_APPLICATION_NAME: api-gateway
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      MANAGEMENT_HEALTH_RABBIT_ENABLED: false
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: redispass
+      SPRING_DATA_REDIS_USERNAME: default
+      SPRING_DATA_REDIS_TIMEOUT: 10000ms
+      SPRING_DATA_REDIS_CONNECT_TIMEOUT: 5000ms
     ports:
       - "8080:8080"
     networks:
@@ -315,6 +368,10 @@ services:
       discovery-service:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      menu-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]

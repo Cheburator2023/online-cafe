@@ -15,16 +15,15 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-      username: ${REDIS_USERNAME:}
-      timeout: 5000ms
-      connect-timeout: 2000ms
-      client-type: lettuce
+      username: ${REDIS_USERNAME:default}
+      timeout: 10000ms
+      connect-timeout: 5000ms
       lettuce:
         pool:
           max-active: 8
           max-idle: 8
           min-idle: 2
-          max-wait: 2000ms
+          max-wait: 5000ms
           time-between-eviction-runs: 30000ms
         shutdown-timeout: 200ms
 
@@ -32,11 +31,12 @@ spring:
     web-application-type: reactive
     allow-bean-definition-overriding: true
 
-  # Отключаем RabbitMQ автоконфигурацию в API Gateway
+  # Отключаем RabbitMQ и лишние Redis автоконфигурации в API Gateway
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
 
 server:
   port: ${SERVER_PORT:8080}
@@ -46,24 +46,25 @@ server:
     min-response-size: 1024
   forward-headers-strategy: framework
 
+# Swagger/OpenAPI конфигурация
 springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-    groups:
-      enabled: true
   swagger-ui:
-    enabled: true
     path: /swagger-ui.html
-    config-url: /v3/api-docs/swagger-config
-    display-request-duration: true
     operations-sorter: method
     tags-sorter: alpha
     doc-expansion: none
+    display-request-duration: true
+    default-models-expand-depth: 2
+    default-model-expand-depth: 2
+    disable-swagger-default-url: true
     display-operation-id: false
-    url: /v3/api-docs
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
   cache:
     disabled: true
+  webjars:
+    prefix: /webjars
 
 eureka:
   client:
@@ -97,7 +98,7 @@ management:
         enabled: true
       group:
         readiness:
-          include: readinessState,redis,diskSpace
+          include: readinessState,redis,redisCommand,diskSpace
         liveness:
           include: livenessState
     circuitbreakers:

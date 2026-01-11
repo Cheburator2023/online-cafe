@@ -1,0 +1,36 @@
+{
+  "scripts": {
+    "load": "k6 run load-tests/user-scenario.js",
+    "stress": "k6 run load-tests/stress-test.js",
+    "integration": "k6 run integration-tests/full-flow.js",
+    "mq-test": "k6 run integration-tests/message-queue.js",
+    "smoke": "k6 run --vus 1 --iterations 1 integration-tests/full-flow.js"
+  },
+  "environments": {
+    "local": {
+      "baseUrl": "http://localhost:8080",
+      "duration": "5m",
+      "vus": 10
+    },
+    "staging": {
+      "baseUrl": "http://staging.online-cafe.com",
+      "duration": "10m",
+      "vus": 50
+    },
+    "production": {
+      "baseUrl": "https://api.online-cafe.com",
+      "duration": "15m",
+      "vus": 100
+    }
+  },
+  "thresholds": {
+    "default": {
+      "http_req_duration": ["p(95)<2000"],
+      "http_req_failed": ["rate<0.05"]
+    },
+    "api-gateway": {
+      "http_req_duration": ["p(95)<1000"],
+      "http_req_failed": ["rate<0.01"]
+    }
+  }
+}

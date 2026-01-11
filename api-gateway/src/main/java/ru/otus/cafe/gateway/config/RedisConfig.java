@@ -54,6 +54,9 @@ public class RedisConfig {
 
         if (redisProperties.getUsername() != null && !redisProperties.getUsername().isEmpty()) {
             config.setUsername(redisProperties.getUsername());
+        } else {
+            config.setUsername("default");
+            logger.info("Using default Redis username: default");
         }
 
         config.setDatabase(redisProperties.getDatabase());
@@ -106,6 +109,7 @@ public class RedisConfig {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName("localhost");
         config.setPort(6379);
+        config.setUsername("default");
 
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .clientOptions(

@@ -28,16 +28,15 @@ spring:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:redispass}
-      username: ${REDIS_USERNAME:}
-      timeout: 5000ms
-      connect-timeout: 2000ms
-      client-type: lettuce
+      username: ${REDIS_USERNAME:default}
+      timeout: 10000ms
+      connect-timeout: 5000ms
       lettuce:
         pool:
           max-active: 8
           max-idle: 8
           min-idle: 2
-          max-wait: 2000ms
+          max-wait: 5000ms
           time-between-eviction-runs: 30000ms
         shutdown-timeout: 200ms
 
@@ -45,11 +44,12 @@ spring:
     web-application-type: reactive
     allow-bean-definition-overriding: true
 
-  # Отключаем RabbitMQ автоконфигурацию в API Gateway
+  # Отключаем RabbitMQ и лишние Redis автоконфигурации в API Gateway
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
 
 server:
   port: ${SERVER_PORT:8080}
@@ -102,17 +102,16 @@ eureka:
     prefer-same-zone-eureka: true
   instance:
     prefer-ip-address: true
-    ip-address: ${DOCKER_HOST_IP:}
-    hostname: ${HOSTNAME:api-gateway}
-    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:api-gateway}
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
     appname: ${spring.application.name}
     virtual-host-name: ${spring.application.name}
     secure-virtual-host-name: ${spring.application.name}
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 30
-    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
-    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
-    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
+    home-page-url-path: /
     metadata-map:
       management.port: ${server.port}
       zone: default

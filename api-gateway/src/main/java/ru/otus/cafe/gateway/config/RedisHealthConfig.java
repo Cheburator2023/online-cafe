@@ -59,14 +59,6 @@ public class RedisHealthConfig {
     }
 
     /**
-     * Создает ReactiveRedisTemplate для работы с Redis.
-     */
-    @Bean
-    public ReactiveStringRedisTemplate reactiveStringRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
-        return new ReactiveStringRedisTemplate(connectionFactory);
-    }
-
-    /**
      * Дополнительный health indicator, который проверяет возможность выполнения команд.
      */
     @Bean
