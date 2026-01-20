@@ -39,6 +39,15 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
     connection-timeout: 5000
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-interval: 10000ms
+        max-attempts: 3
+      # Конфигурация для корректной сериализации
+    publisher-returns: true
+    publisher-confirm-type: correlated
 
 eureka:
   client:

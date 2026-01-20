@@ -40,6 +40,7 @@ echo "3) Нагрузочные тесты (load)"
 echo "4) Стресс-тесты (stress)"
 echo "5) Тестирование очередей (mq-test)"
 echo "6) Запустить все тесты"
+echo "7) Запустить дебаг тесты"
 echo ""
 
 read -p "Введите номер: " choice
@@ -123,6 +124,13 @@ case $choice in
             echo "❌ Файл integration/message-queue.js не найден"
         fi
         ;;
+    7) echo "🔄 Дебаг тестирование..."
+               if [ -f "integration/debug-integration.js" ]; then
+                   k6 run integration/debug-integration.js
+               else
+                   echo "❌ Файл integration/debug-integration.js не найден"
+               fi
+               ;;
     *)
         echo "❌ Неверный выбор"
         exit 1

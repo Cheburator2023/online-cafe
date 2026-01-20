@@ -3,7 +3,6 @@ package ru.otus.cafe.gateway.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +38,11 @@ public class GatewayRoutesConfig {
         // Маршруты для сервисов
         for (String service : SERVICES) {
             String serviceId = service + "-service";
+            String serviceName = serviceId.toUpperCase();
             String apiPath = "/api/" + service + "/**";
             String fallbackUri = "forward:/fallback/" + service;
+
+            logger.info("Configuring route for service: {} -> {}", serviceId, serviceName);
 
             routes.route(serviceId, r -> r
                     .path(apiPath)
@@ -49,34 +51,19 @@ public class GatewayRoutesConfig {
                                     .setName(serviceId)
                                     .setFallbackUri(fallbackUri))
                             .rewritePath("/api/" + service + "/(?<segment>.*)", "/${segment}")
-                            .preserveHostHeader()
                     )
-                    .uri(uriPrefix + serviceId.toUpperCase()));
+                    .uri(uriPrefix + serviceName));
         }
 
         // Маршрут для Actuator
         routes.route("actuator", r -> r
                 .path("/actuator/**")
-                .filters(GatewayFilterSpec::preserveHostHeader)
                 .uri(uriPrefix + "API-GATEWAY"));
 
         // Маршрут для Swagger UI
         routes.route("swagger-ui", r -> r
                 .path("/swagger-ui.html", "/webjars/**", "/v3/api-docs/**", "/swagger-resources/**")
-                .filters(GatewayFilterSpec::preserveHostHeader)
                 .uri(uriPrefix + "API-GATEWAY"));
-
-        // Маршрут для редиректа с корневого пути на Swagger UI
-        routes.route("root-redirect", r -> r
-                .path("/")
-                .filters(f -> f.redirect(302, "/swagger-ui.html"))
-                .uri("http://no-uri-required.com"));
-
-        // Маршрут для редиректа с /swagger на Swagger UI
-        routes.route("swagger-redirect", r -> r
-                .path("/swagger")
-                .filters(f -> f.redirect(302, "/swagger-ui.html"))
-                .uri("http://no-uri-required.com"));
 
         return routes.build();
     }

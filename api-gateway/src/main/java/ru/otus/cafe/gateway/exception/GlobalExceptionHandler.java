@@ -9,11 +9,45 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.otus.cafe.common.dto.ApiResponse;
+import org.springframework.web.server.MethodNotAllowedException;
+import org.springframework.web.reactive.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(MethodNotAllowedException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleMethodNotAllowedException(
+            MethodNotAllowedException ex, ServerWebExchange exchange) {
+
+        logger.warn("Method not allowed for request to {}: {}",
+                exchange.getRequest().getPath(), ex.getMessage());
+
+        ApiResponse<Void> response = ApiResponse.error(
+                HttpStatus.METHOD_NOT_ALLOWED.toString(),
+                "HTTP method not supported for this endpoint");
+
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(response));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Mono<ResponseEntity<ApiResponse<Void>>> handleNoResourceFoundException(
+            NoResourceFoundException ex, ServerWebExchange exchange) {
+
+        logger.debug("Resource not found for request to {}: {}",
+                exchange.getRequest().getPath(), ex.getMessage());
+
+        ApiResponse<Void> response = ApiResponse.error(
+                HttpStatus.NOT_FOUND.toString(),
+                "Resource not found");
+
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response));
+    }
 
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ApiResponse<Void>>> handleGenericException(

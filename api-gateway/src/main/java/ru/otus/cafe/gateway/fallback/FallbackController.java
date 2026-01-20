@@ -4,14 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.otus.cafe.common.dto.ApiResponse;
 
 import java.util.Map;
 
 @RestController
+@RequestMapping("/fallback")
 public class FallbackController {
 
     private static final Logger logger = LoggerFactory.getLogger(FallbackController.class);
@@ -25,45 +24,49 @@ public class FallbackController {
             "actuator", "Actuator"
     );
 
-    @GetMapping("/fallback/{service}")
+    @RequestMapping(value = "/{service}", method = {RequestMethod.GET, RequestMethod.POST,
+            RequestMethod.PUT, RequestMethod.DELETE,
+            RequestMethod.PATCH})
     public ResponseEntity<ApiResponse<Void>> serviceFallback(@PathVariable String service) {
         String serviceName = SERVICE_NAMES.getOrDefault(service, service);
         String message = String.format("%s service is temporarily unavailable. Please try again later.", serviceName);
 
-        logger.warn("Fallback triggered for service: {}", service);
+        logger.warn("Fallback triggered for service: {} with proper HTTP method handling", service);
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponse.error(HttpStatus.SERVICE_UNAVAILABLE.toString(), message));
     }
 
-    // Старые методы для обратной совместимости
-    @GetMapping("/fallback/user-service")
+    @RequestMapping(value = "/user-service", method = {RequestMethod.GET, RequestMethod.POST,
+            RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<ApiResponse<Void>> userServiceFallback() {
         return serviceFallback("user");
     }
 
-    @GetMapping("/fallback/menu-service")
+    @RequestMapping(value = "/menu-service", method = {RequestMethod.GET, RequestMethod.POST,
+            RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<ApiResponse<Void>> menuServiceFallback() {
         return serviceFallback("menu");
     }
 
-    @GetMapping("/fallback/order-service")
+    @RequestMapping(value = "/order-service", method = {RequestMethod.GET, RequestMethod.POST,
+            RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<ApiResponse<Void>> orderServiceFallback() {
         return serviceFallback("order");
     }
 
-    @GetMapping("/fallback/payment-service")
+    @RequestMapping(value = "/payment-service", method = {RequestMethod.GET, RequestMethod.POST,
+            RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<ApiResponse<Void>> paymentServiceFallback() {
         return serviceFallback("payment");
     }
 
-    // Новый метод для Actuator fallback
-    @GetMapping("/fallback/actuator")
+    @RequestMapping(value = "/actuator", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<ApiResponse<Void>> actuatorFallback() {
         return serviceFallback("actuator");
     }
 
-    @GetMapping("/fallback/health")
+    @RequestMapping(value = "/health", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<ApiResponse<Void>> healthFallback() {
         return serviceFallback("health");
     }

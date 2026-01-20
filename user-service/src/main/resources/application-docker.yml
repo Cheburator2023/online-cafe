@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: USER-SERVICE
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://user-postgresql:5432/user_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    connection-timeout: 5000
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-interval: 10000ms
+        max-attempts: 3
+    publisher-returns: true
+    publisher-confirm-type: correlated
+
+server:
+  port: 8000
+  servlet:
+    context-path: /
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://discovery-service:8761/eureka}
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 30
+    eureka-service-url-poll-interval-seconds: 5
+    eureka-server-read-timeout-seconds: 10
+    eureka-server-connect-timeout-seconds: 5
+    eureka-server-total-connections: 50
+    eureka-server-total-connections-per-host: 10
+    filter-only-up-instances: true
+    prefer-same-zone-eureka: true
+  instance:
+    hostname: user-service
+    instance-id: ${spring.application.name}:${server.port}
+    appname: ${spring.application.name}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    prefer-ip-address: false
+    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+    metadata-map:
+      management.port: ${server.port}
+      zone: default
+      profile: ${spring.profiles.active:docker}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+
+logging:
+  level:
+    ru.otus.user: ${LOG_LEVEL:INFO}
+    org.springframework.web: WARN
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:WARN}
+    org.springframework.cloud.netflix.eureka: DEBUG
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

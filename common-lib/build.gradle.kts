@@ -29,12 +29,26 @@ dependencyManagement {
 }
 
 dependencies {
+    // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Jackson
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // Spring
     implementation("org.springframework:spring-tx")
 
+    // Eureka Client
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+    // Metrics
+    implementation("io.micrometer:micrometer-core")
+
+    // Lombok
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

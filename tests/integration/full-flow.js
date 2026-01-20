@@ -65,10 +65,16 @@ export default function () {
             email: `integration_${Date.now()}@test.com`
         };
 
+        // Исправленный путь к API пользователей
         const res = http.post(
             `${BASE_URL}/api/user/api/v1/users`,
             JSON.stringify(userData),
-            { headers: { 'Content-Type': 'application/json' } }
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }
         );
 
         const passed = check(res, {
@@ -80,6 +86,7 @@ export default function () {
             testContext.userId = res.json().data.id;
             successfulTests.add(1);
         } else {
+            console.log(`User creation failed with status ${res.status}: ${res.body}`);
             failedTests.add(1);
         }
     });
@@ -102,9 +109,14 @@ export default function () {
         };
 
         const res = http.post(
-            `${BASE_URL}/api/orders`,
+            `${BASE_URL}/api/order`,
             JSON.stringify(orderData),
-            { headers: { 'Content-Type': 'application/json' } }
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }
         );
 
         const passed = check(res, {
@@ -117,6 +129,7 @@ export default function () {
             testContext.orderId = res.json().data.id;
             successfulTests.add(1);
         } else {
+            console.log(`Order creation failed with status ${res.status}: ${res.body}`);
             failedTests.add(1);
         }
     });
@@ -135,9 +148,14 @@ export default function () {
         };
 
         const res = http.post(
-            `${BASE_URL}/api/payments`,
+            `${BASE_URL}/api/payment`,
             JSON.stringify(paymentData),
-            { headers: { 'Content-Type': 'application/json' } }
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }
         );
 
         const passed = check(res, {
@@ -150,6 +168,7 @@ export default function () {
             testContext.paymentId = res.json().data.id;
             successfulTests.add(1);
         } else {
+            console.log(`Payment creation failed with status ${res.status}: ${res.body}`);
             failedTests.add(1);
         }
     });
@@ -166,7 +185,7 @@ export default function () {
         }
 
         if (testContext.orderId) {
-            const orderRes = http.get(`${BASE_URL}/api/orders/${testContext.orderId}`);
+            const orderRes = http.get(`${BASE_URL}/api/order/${testContext.orderId}`);
             checks.push(check(orderRes, {
                 'order exists': (r) => r.status === 200,
                 'order has correct user': (r) => r.json() && r.json().data.userId === testContext.userId
@@ -174,7 +193,7 @@ export default function () {
         }
 
         if (testContext.paymentId) {
-            const paymentRes = http.get(`${BASE_URL}/api/payments/${testContext.paymentId}`);
+            const paymentRes = http.get(`${BASE_URL}/api/payment/${testContext.paymentId}`);
             checks.push(check(paymentRes, {
                 'payment exists': (r) => r.status === 200,
                 'payment has correct order': (r) => r.json() && r.json().data.orderId === testContext.orderId

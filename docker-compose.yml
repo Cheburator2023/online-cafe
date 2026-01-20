@@ -179,6 +179,7 @@ services:
       dockerfile: user-service/Dockerfile
     container_name: user-service
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://user-postgresql:5432/user_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
@@ -187,15 +188,17 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       EUREKA_URL: http://discovery-service:8761/eureka
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8000
-      SPRING_APPLICATION_NAME: user-service
+      LOG_LEVEL: DEBUG
+      EUREKA_INSTANCE_HOSTNAME: user-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: false
+      EUREKA_INSTANCE_APPNAME: USER-SERVICE
+      EUREKA_CLIENT_ENABLED: true
+      EUREKA_CLIENT_FETCH_REGISTRY: true
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: true
     ports:
       - "8000:8000"
     networks:
-      cafe-network:
-        aliases:
-          - user-service
+      - cafe-network
     depends_on:
       user-postgresql:
         condition: service_healthy
